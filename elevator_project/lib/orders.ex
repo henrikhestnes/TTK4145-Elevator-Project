@@ -8,12 +8,12 @@ defmodule Orders do
     Agent.start_link(fn -> %{:cab => [], :hall_down => [], :hall_up => []} end, name: __MODULE__)
   end
 
-  def new(floor, button_type) when is_integer(floor) and button_type in @valid_order do
+  def new(button_type, floor) when is_integer(floor) and button_type in @valid_order do
     Agent.update(__MODULE__,
     fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
   end
 
-  def delete(floor, button_type) when is_integer(floor) and button_type in @valid_order do
+  def delete(button_type, floor) when is_integer(floor) and button_type in @valid_order do
     Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> List.delete(list, floor) end) end)
   end
 
@@ -50,6 +50,11 @@ defmodule Orders do
     end
   end
 
+  def clear_at_floor(floor) do
+    Map.keys(order_map())
+    |> Enum.each(fn key -> delete(key, floor) end)
+  end
+
   # Private helper functions
   def order_map do
     Agent.get(__MODULE__, fn orders -> orders end)
@@ -61,7 +66,6 @@ defmodule Orders do
     |> Enum.filter(fn v -> v > floor end)
     |> Enum.any?
   end
-
 
   def orders_below?(floor) do
     Map.values(order_map())
