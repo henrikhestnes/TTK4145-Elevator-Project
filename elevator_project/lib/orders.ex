@@ -51,8 +51,9 @@ defmodule Orders do
   end
 
   def clear_at_floor(floor) do
-    Map.keys(order_map())
-    |> Enum.each(fn key -> delete(key, floor) end)
+    order_map()
+    |> Map.keys()
+    |> Enum.each(fn button_type -> delete(button_type, floor) end)
   end
 
   # Private helper functions
@@ -61,14 +62,16 @@ defmodule Orders do
   end
 
   def orders_above?(floor) do
-    Map.values(order_map())
+    order_map()
+    |> Map.values()
     |> List.flatten()
     |> Enum.filter(fn v -> v > floor end)
     |> Enum.any?
   end
 
   def orders_below?(floor) do
-    Map.values(order_map())
+    order_map()
+    |> Map.values()
     |> List.flatten()
     |> Enum.filter(fn v -> v < floor end)
     |> Enum.any?
