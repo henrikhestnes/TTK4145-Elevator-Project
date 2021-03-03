@@ -20,12 +20,8 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, {:floor_arrival, floor})
   end
 
-  def door_timeout() do
-    GenStateMachine.cast(__MODULE__, :door_timeout)
-  end
-
-  def obstruction(state) do
-    GenStateMachine.cast(__MODULE__, {:obstruction, state})
+  def obstruction(is_obstructed) do
+    GenStateMachine.cast(__MODULE__, {:obstruction, is_obstructed})
   end
 
   # Initialization and termination callbacks
@@ -68,7 +64,7 @@ defmodule Elevator do
   # TODO: update request lights
   def handle_event(:cast, {:request_button_press, button_floor, button_type}, :door_open, %Elevator{} = e) do
     if e.floor == button_floor do
-      # restart door timer
+      Timer.start(e)
     else
       Orders.new(button_type, button_floor)
     end
@@ -83,7 +79,7 @@ defmodule Elevator do
   def handle_event(:cast, {:request_button_press, button_floor, button_type}, :idle, %Elevator{} = e) do
     if e.floor == button_floor do
       Driver.set_door_open_light(:on)
-      # start door timer
+      Timer.start(e)
       {:next_state, :door_open, e}
     else
       Orders.new(button_type, button_floor)
@@ -101,7 +97,7 @@ defmodule Elevator do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
       Orders.clear_at_floor(floor)
-      # start timer
+      Timer.start(e)
       # update lights
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else
@@ -115,13 +111,13 @@ defmodule Elevator do
   end
 
   # Door timeout callbacks
-  def handle_event(:cast, :door_timeout, :door_open, %Elevator{} = e) do
+  def handle_event(:info, :door_timeout, :door_open, %Elevator{} = e) do
     Driver.set_door_open_light(:off)
     direction = Orders.choose_direction(e)
     Driver.set_motor_direction(direction)
     case direction do
       :stop -> {:next_state, :idle, %{e | direction: direction}}
-      _ -> {:next_state, :moving, %{e | direction: direction}}
+      _     -> {:next_state, :moving, %{e | direction: direction}}
     end
   end
 
@@ -130,12 +126,12 @@ defmodule Elevator do
   end
 
   # Obstruction switch callbacks
-  def handle_event(:cast, {:obstruction, state}, :door_open, %Elevator{} = e) do
-    # case state do
-    #   true -> # stop timer
-    #   false -> # start timer
-    # end
-    {:keep_state, %{e | obstructed: state}}
+  def handle_event(:cast, {:obstruction, is_obstructed}, :door_open, %Elevator{} = e) do
+    case is_obstructed do
+      true  -> Timer.stop(e)
+      false -> Timer.start(e)
+    end
+    :keep_state_and_data
   end
 
   def handle_event(:cast, {:obstruction, _}, _state, _data) do
@@ -152,13 +148,17 @@ defmodule Elevator do
     IO.puts("State: #{state}")
     IO.puts("Floor: #{e.floor}")
     IO.puts("Direction: #{e.direction}")
+    case e.timer_ref do
+      nil -> IO.puts("No active timer ref")
+      _   -> IO.puts("Active timer ref")
+    end
     :keep_state_and_data
   end
 
   def timer_update(timer_ref) do
     GenStateMachine.cast(__MODULE__, {:timer_update, timer_ref})
   end
-  
+
   def print() do
     GenStateMachine.cast(__MODULE__, :print)
   end
