@@ -4,8 +4,8 @@ defmodule Elevator do
 
   @n_floors 4
 
-  @enforce_keys [:floor, :direction, :obstructed, :timer_ref]
-  defstruct [:floor, :direction, :obstructed, :timer_ref]
+  @enforce_keys [:floor, :direction, :timer_ref]
+  defstruct [:floor, :direction, :timer_ref]
 
   def start_link(args \\ []) do
     GenStateMachine.start_link(__MODULE__, {:init, args}, name: __MODULE__)
@@ -24,7 +24,7 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, :door_timeout)
   end
 
-  def obstruction_switch(state) do
+  def obstruction(state) do
     GenStateMachine.cast(__MODULE__, {:obstruction, state})
   end
 
@@ -40,7 +40,6 @@ defmodule Elevator do
     #     e = %Elevator{
     #       floor: nil,
     #       direction: :down,
-    #       obstructed: false,
     #       timer_ref: nil
     #     }
     #     {:ok, :moving, e}
@@ -48,7 +47,6 @@ defmodule Elevator do
     #     e = %Elevator{
     #       floor: floor,
     #       direction: :stop,
-    #       obstructed: false,
     #       timer_ref: nil
     #     }
     #     {:ok, :idle, e}
@@ -57,7 +55,6 @@ defmodule Elevator do
     e = %Elevator{
             floor: nil,
             direction: :down,
-            obstructed: false,
             timer_ref: nil
           }
     {:ok, :moving, e}
@@ -70,7 +67,7 @@ defmodule Elevator do
   # Request button press callbacks
   # TODO: update request lights
   def handle_event(:cast, {:request_button_press, button_floor, button_type}, :door_open, %Elevator{} = e) do
-    if e.floor == button_floor and not e.obstructed do
+    if e.floor == button_floor do
       # restart door timer
     else
       Orders.new(button_type, button_floor)
@@ -104,9 +101,7 @@ defmodule Elevator do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
       Orders.clear_at_floor(floor)
-      if not e.obstructed do
-        # start timer
-      end
+      # start timer
       # update lights
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else
@@ -143,8 +138,8 @@ defmodule Elevator do
     {:keep_state, %{e | obstructed: state}}
   end
 
-  def handle_event(:cast, {:obstruction, state}, _state, %Elevator{} = e) do
-    {:keep_state, %{e | obstructed: state}}
+  def handle_event(:cast, {:obstruction, _}, _state, _data) do
+    :keep_state_and_data
   end
 
   # Timer callbacks
@@ -153,18 +148,17 @@ defmodule Elevator do
   end
 
   # Helper functions
-  def timer_update(timer_ref) do
-    GenStateMachine.cast(__MODULE__, {:timer_update, timer_ref})
-  end
-
   def handle_event(:cast, :print, state, %Elevator{} = e) do
     IO.puts("State: #{state}")
     IO.puts("Floor: #{e.floor}")
     IO.puts("Direction: #{e.direction}")
-    IO.puts("Obstructed: #{e.obstructed}")
     :keep_state_and_data
   end
 
+  def timer_update(timer_ref) do
+    GenStateMachine.cast(__MODULE__, {:timer_update, timer_ref})
+  end
+  
   def print() do
     GenStateMachine.cast(__MODULE__, :print)
   end
