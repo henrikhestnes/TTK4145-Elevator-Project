@@ -11,7 +11,7 @@ defmodule Elevator do
     GenStateMachine.start_link(__MODULE__, {:init, args}, name: __MODULE__)
   end
 
-  # API
+  # API --------------------------------------------------------------------------
   def request_button_press(floor, button_type) do
     GenStateMachine.cast(__MODULE__, {:request_button_press, floor, button_type})
   end
@@ -24,7 +24,7 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, {:obstruction, is_obstructed})
   end
 
-  # Initialization and termination callbacks
+  # Initialization and termination callbacks -------------------------------------
   def init({:init, _}) do
     Orders.start_link()
 
