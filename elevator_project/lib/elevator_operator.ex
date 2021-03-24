@@ -4,8 +4,8 @@ defmodule Elevator do
 
   @n_floors 4
 
-  @enforce_keys [:floor, :direction, :timer_ref]
-  defstruct [:floor, :direction, :timer_ref]
+  @enforce_keys [:floor, :direction, :timer_ref, :orders]
+  defstruct [:floor, :direction, :timer_ref, :orders]
 
   def start_link(args \\ []) do
     GenStateMachine.start_link(__MODULE__, {:init, args}, name: __MODULE__)
@@ -55,7 +55,8 @@ defmodule Elevator do
     e = %Elevator{
             floor: nil,
             direction: :down,
-            timer_ref: nil
+            timer_ref: nil,
+            orders: %{}
           }
     {:ok, :moving, e}
   end
@@ -145,6 +146,11 @@ defmodule Elevator do
   # Timer callbacks
   def handle_event(:cast, {:timer_update, timer_ref}, _state, %Elevator{} = e) do
     {:keep_state, %{e | timer_ref: timer_ref}}
+  end
+
+  # Get orders callbacks
+  def handle_event({:call, from}, :get_orders, _state, %Elevator{} = e ) do
+    {:keep_state_and_data, [{:reply, from, e.orders}]}
   end
 
   # Helper functions
