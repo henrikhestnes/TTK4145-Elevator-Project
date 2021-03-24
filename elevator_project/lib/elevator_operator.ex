@@ -24,6 +24,10 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, {:obstruction, is_obstructed})
   end
 
+  def get_orders do
+    GenStateMachine.call(__MODULE__, :get_orders)
+  end
+
   # Initialization and termination callbacks -------------------------------------
   def init({:init, _}) do
     Orders.start_link()
