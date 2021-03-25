@@ -1,10 +1,10 @@
 defmodule Test do
   def compare_backups() do
-    list1 = [1, 2, 3]
-    list2 = [2, 3, 4]
-    list3 = [4, 5, 6, 7]
-    list4 = [2, 4, 5, 8]
-    list = [list1, list2, list3, list4]
-    OrderDistributor.compare_backups(list)
+    map1 = [:cab => 1, :hall_down => [1], :hall_up => [1]]
+    map2 = [:cab => 1, :hall_down => [1], :hall_up => [1]]
+    map3 = [:cab => 3, :hall_down => [1], :hall_up => [1]]
+    map4 = [:cab => 1, :hall_down => [1], :hall_up => [2]]
+    map = [map1, map2, map3, map4]
+    OrderDistributor.compare_backups(map)
   end
 end

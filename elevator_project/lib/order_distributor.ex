@@ -11,64 +11,54 @@ defmodule OrderDistributor do
     {:ok, init_arg}
   end
 
-  def add_order(order = %Order{}, node) do
-    GenServer.call(node, {:add_order, order}) 
-    
+  def add_order() do
+    GenServer.call()
   end
 
   def delete_order(order = %Order{}, node) do
     GenServer.call(node, {:delete_order, order})   
   end
 
-  def broadcast(order = %Order{}) do
+  def broadcast_backup(order = %Order{}, node) do
     GenServer.multi_call(
       [Node.self() | Node.list()],
-      :Orders,
-      {:new_order, order},
+      :OrderDistributor,
+      {:broadcast_backup, OrderBackup.order_map(), node},
       @broadcast_timeout
     )
   end
+
+  def broadcast_order_complete(order = %Order{}, node)
 
   def request_order_backup() do
     {backups, _bad_nodes} = GenServer.multi_call(
       [Node.self() | Node.list()],
-      :Orders,
+      :OrderDistributor,
       {:request_backup},
       @broadcast_timeout
     )
 
-    _backup = Utilities.compare_backups(backups)
-    # Todo: update backup server
+    current_backup = OrderBackup.order_map()
+    merge_backups(backups, current_backup)
   end
 
-  def handle_cast({:request_backup}, _from, state) do
-    request_order_backup()
+  def handle_call({:request_backup}, _from, state) do
+    {:reply, OrderBackup.order_map()}
   end 
 
-  def handle_call({:add_order, order}, _from, state) do
-    Orders.new(order.button_type, order.floor)
-    {:reply, state}
+  def handle_call({:new_order, order, node}) do
+    case node do
+      Node.self() -> 
+        Orders.new(order.)
+        update_backup()
+        broadcast_backup(order, node)
+      other->
+        broadcast_backup(order, node)
+    end
+    {:reply, :ok, }
   end
 
-  def handle_call({:delete_order, order}) do
-    
+  def handle_call(:broadcast_backup) do
+    merge_backups()
   end
 
-
-defp compare_backups(old_backup, backups) do
-  [next_backup | remaining_backups] = backups
-  case remaining_backups do
-    [] -> 
-      Enum.filter(next_backup, fn el -> !Enum.member?(old_backup, el) end) ++ old_backup
-    remaining_backups -> 
-      new_backup = Enum.filter(next_backup, fn el -> !Enum.member?(old_backup, el) end) ++ old_backup
-      IO.puts(old_backup)
-      compare_backups(new_backup, remaining_backups)
-  end
-end
-
-def compare_backups(backups) do
-  [first_backup | remaining_backups] = backups
-  compare_backups(first_backup, remaining_backups)
-end
-end
