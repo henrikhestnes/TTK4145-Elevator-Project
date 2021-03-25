@@ -13,7 +13,7 @@ defmodule OrderDistributor do
   end
 
   def delete_order(%Order{}, node) do
-    #GenServer.call(node, {:delete_order, order})
+    GenServer.call(node, {:delete_order, order})
 
   end
 
@@ -38,7 +38,7 @@ defmodule OrderDistributor do
   end
 
   def handle_cast({:request_backup}, _from, state) do
-    #Genserver.cast(__MODULE__, {:send_backup, from})
+    Genserver.cast(__MODULE__, {:send_backup, from})
   end
 
   def handle_call({:add_order, order}, _from, state) do
