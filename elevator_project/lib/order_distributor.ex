@@ -11,24 +11,31 @@ defmodule OrderDistributor do
     {:ok, init_arg}
   end
 
-  def add_order() do
-    GenServer.call()
+  def add_order(order) do
+    GenServer.call(__MODULE__, {:add_order, order})
   end
 
-  def delete_order(order = %Order{}, node) do
-    GenServer.call(node, {:delete_order, order})   
+  def delete_order(order = %Order{}) do
+    
   end
 
-  def broadcast_backup(order = %Order{}, node) do
+  def broadcast_backup(order = %Order{}) do
     GenServer.multi_call(
-      [Node.self() | Node.list()],
+      [Node.list()],
       :OrderDistributor,
-      {:broadcast_backup, OrderBackup.order_map(), node},
+      {:broadcast_backup, OrderBackup.order_map()},
       @broadcast_timeout
     )
   end
 
-  def broadcast_order_complete(order = %Order{}, node)
+  def broadcast_order_complete(order = %Order{}, node) do
+    GenServer.multi_call(
+      [Node.self() | Node.list()],
+      :OrderDistributor,
+      {:order_complete, order},
+      @broadcast_timeout
+    )  
+  end
 
   def request_order_backup() do
     {backups, _bad_nodes} = GenServer.multi_call(
@@ -39,26 +46,31 @@ defmodule OrderDistributor do
     )
 
     current_backup = OrderBackup.order_map()
-    merge_backups(backups, current_backup)
+    OrderBackup.merge(backups, current_backup)
   end
 
-  def handle_call({:request_backup}, _from, state) do
+  def handle_call({:request_backup}, _from, _state) do
     {:reply, OrderBackup.order_map()}
   end 
 
+  def handle_call({:order_complete, node}, _from, _state) do
+    
+  end
+
   def handle_call({:new_order, order, node}) do
+    this_node = Node.self()
     case node do
-      Node.self() -> 
-        Orders.new(order.)
-        update_backup()
-        broadcast_backup(order, node)
+      this_node-> 
+        add_order(order)
+        broadcast_backup(order)
       other->
-        broadcast_backup(order, node)
+        broadcast_backup(order)
     end
     {:reply, :ok, }
   end
 
   def handle_call(:broadcast_backup) do
-    merge_backups()
+    OrderBackup.merge()
   end
 
+end
