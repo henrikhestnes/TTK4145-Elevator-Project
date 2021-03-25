@@ -7,14 +7,17 @@ defmodule OrderDistributor do
     GenServer.start_link(__MODULE__, [])
   end
 
-  def add_order(order = %Order{}, node) do
-    GenServer.call(node, {:add_order, order}) 
-     
+  def init(init_arg) do
+    {:ok, init_arg}
   end
 
-  def delete_order(%Order{}, node) do
-    GenServer.call(node, {:delete_order, order}) 
-      
+  def add_order(order = %Order{}, node) do
+    GenServer.call(node, {:add_order, order}) 
+    
+  end
+
+  def delete_order(order = %Order{}, node) do
+    GenServer.call(node, {:delete_order, order})   
   end
 
   def broadcast(order = %Order{}) do
@@ -27,18 +30,19 @@ defmodule OrderDistributor do
   end
 
   def request_order_backup() do
-    {replies, bad_nodes} = GenServer.multi_call(
+    {backups, _bad_nodes} = GenServer.multi_call(
       [Node.self() | Node.list()],
       :Orders,
       {:request_backup},
       @broadcast_timeout
     )
 
-    # Todo: Finne en korrekt backup
+    _backup = Utilities.compare_backups(backups)
+    # Todo: update backup server
   end
 
   def handle_cast({:request_backup}, _from, state) do
-    Genserver.cast(__MODULE__, {:send_backup, from})
+    request_order_backup()
   end 
 
   def handle_call({:add_order, order}, _from, state) do
@@ -50,4 +54,21 @@ defmodule OrderDistributor do
     
   end
 
+
+defp compare_backups(old_backup, backups) do
+  [next_backup | remaining_backups] = backups
+  case remaining_backups do
+    [] -> 
+      Enum.filter(next_backup, fn el -> !Enum.member?(old_backup, el) end) ++ old_backup
+    remaining_backups -> 
+      new_backup = Enum.filter(next_backup, fn el -> !Enum.member?(old_backup, el) end) ++ old_backup
+      IO.puts(old_backup)
+      compare_backups(new_backup, remaining_backups)
+  end
+end
+
+def compare_backups(backups) do
+  [first_backup | remaining_backups] = backups
+  compare_backups(first_backup, remaining_backups)
+end
 end
