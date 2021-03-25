@@ -19,7 +19,7 @@ defmodule OrderDistributor do
     
   end
 
-  def broadcast_backup(order = %Order{}) do
+  def broadcast_backup() do
     GenServer.multi_call(
       [Node.list()],
       :OrderDistributor,
@@ -57,20 +57,20 @@ defmodule OrderDistributor do
     
   end
 
-  def handle_call({:new_order, order, node}) do
+  def handle_call({:add_order, order, node}, _from, state) do
     this_node = Node.self()
     case node do
       this_node-> 
-        add_order(order)
-        broadcast_backup(order)
+        Orders.new(order[:button_type], order[:floor])
+        broadcast_backup()
       other->
-        broadcast_backup(order)
+        broadcast_backup()
     end
-    {:reply, :ok, }
+    {:reply, :ok, state}
   end
 
-  def handle_call(:broadcast_backup) do
+  def handle_call(:broadcast_backup, _from, state) do
     OrderBackup.merge()
+    {:reply, {:received, Node.self()}, state}
   end
-
 end
