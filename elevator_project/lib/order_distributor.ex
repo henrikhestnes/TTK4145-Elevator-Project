@@ -11,7 +11,7 @@ defmodule OrderDistributor do
     {:ok, init_arg}
   end
 
-  def add_order(order) do
+  def handle_order(order, node) do
     GenServer.call(__MODULE__, {:add_order, order})
   end
 
