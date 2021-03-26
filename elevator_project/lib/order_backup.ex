@@ -1,15 +1,20 @@
 defmodule OrderBackup do
-  use Agentççç
+  use GenServer
+
+  @enforce_keys [:cab_calls, :hall_call]
+  defstruct [:cab_calls, :hall_calls]
+
   # API
   def start_link do
-    Agent.start_link(fn -> [] end, name: __MODULE__)
+    GenServer.start_link(__MODULE__, %OrderBackup{cab_calls: [], hall_calls: []})
   end
 
-  def get do
-    Agent.get(__MODULE__, fn orders -> orders end)
+  def get() do
+    {reply, :ok, state} = GenServer.call(__MODULE__, :get_orders)
+    state
   end
 
-  def add_order(order) do
+  def add_hall_order(order) do
     Agent.update(__MODULE__, fn backup -> Enum.uniq([order | backup]) end)
   end
 
@@ -29,5 +34,13 @@ defmodule OrderBackup do
   def merge(backups) do
     [first_backup | remaining_backups] = backups
     merge(first_backup, remaining_backups)
+  end
+
+  def handle_call(:get_hall_calls, _from, state) do
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:add_hall_order, _from, state) do
+    
   end
 end
