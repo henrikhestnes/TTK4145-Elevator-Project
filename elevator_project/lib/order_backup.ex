@@ -1,14 +1,11 @@
 defmodule OrderBackup do
-  use Agent
-  
-  @broadcast_timeout 2000
-
+  use Agentççç
   # API
   def start_link do
     Agent.start_link(fn -> [] end, name: __MODULE__)
   end
 
-  def get_orders do
+  def get do
     Agent.get(__MODULE__, fn orders -> orders end)
   end
 
@@ -18,15 +15,6 @@ defmodule OrderBackup do
 
   def remove_order(order) do
     Agent.update(__MODULE__, fn backup -> Enum.filter(backup, fn el -> el != order end) end)
-  end
-
-  def broadcast() do
-    GenServer.multi_call(
-      [Node.self() | Node.list()],
-      :Orders,
-      {:new_backup, get_orders()},
-      @broadcast_timeout
-    )
   end
 
   defp merge(old_backup, backups) do

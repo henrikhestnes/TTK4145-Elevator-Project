@@ -10,7 +10,7 @@ defmodule Test do
                       %Order{button_type: :hall_down, floor: 2},
                       %Order{button_type: :cab, floor: 3}]
     OrderBackup.merge([order_backup1, order_backup2, order_backup3])
-    OrderBackup.get_orders
+    OrderBackup.get()
   end
 
   def remove_order() do
