@@ -56,8 +56,9 @@ defmodule OrderDistributor do
     {:reply, :ok, state}
   end
 
-  def handle_call({:delete_order, order}) do
+  def handle_call({:delete_order, order}, _from, state) do
     Elevator.Orders.delete(order.button_type, order.floor)
+    {:reply, :ok, state}
   end
 
 end
