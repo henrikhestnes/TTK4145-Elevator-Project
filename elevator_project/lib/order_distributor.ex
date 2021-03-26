@@ -7,70 +7,47 @@ defmodule OrderDistributor do
     GenServer.start_link(__MODULE__, [])
   end
 
-  def init(init_arg) do
-    {:ok, init_arg}
+  def add_order(order = %Order{}, node) do
+    GenServer.call(node, {:add_order, order})
+
   end
 
-  def handle_order(order, node) do
-    GenServer.call(__MODULE__, {:add_order, order})
+  def delete_order(%Order{} = order, node) do
+    GenServer.call(node, {:delete_order, order})
+
   end
 
-  def delete_order(order = %Order{}) do
-    
-  end
-
-  def broadcast_backup() do
+  def broadcast(order = %Order{}) do
     GenServer.multi_call(
-      [Node.list()],
-      :OrderDistributor,
-      {:broadcast_backup, OrderBackup.order_map()},
+      [Node.self() | Node.list()],
+      :Orders,
+      {:new_order, order},
       @broadcast_timeout
     )
   end
 
-  def broadcast_order_complete(order = %Order{}, node) do
-    GenServer.multi_call(
-      [Node.self() | Node.list()],
-      :OrderDistributor,
-      {:order_complete, order},
-      @broadcast_timeout
-    )  
-  end
-
   def request_order_backup() do
-    {backups, _bad_nodes} = GenServer.multi_call(
+    {replies, bad_nodes} = GenServer.multi_call(
       [Node.self() | Node.list()],
-      :OrderDistributor,
+      :Orders,
       {:request_backup},
       @broadcast_timeout
     )
 
-    current_backup = OrderBackup.order_map()
-    OrderBackup.merge(backups, current_backup)
+    # Todo: Finne en korrekt backup
   end
 
-  def handle_call({:request_backup}, _from, _state) do
-    {:reply, OrderBackup.order_map()}
-  end 
-
-  def handle_call({:order_complete, node}, _from, _state) do
-    
+  def handle_cast({:request_backup}, _from, state) do
+    # Genserver.cast(__MODULE__, {:send_backup, from})
   end
 
-  def handle_call({:add_order, order, node}, _from, state) do
-    this_node = Node.self()
-    case node do
-      this_node-> 
-        Orders.new(order[:button_type], order[:floor])
-        broadcast_backup()
-      other->
-        broadcast_backup()
-    end
-    {:reply, :ok, state}
+  def handle_call({:add_order, order}, _from, state) do
+    Orders.new(order.button_type, order.floor)
+    {:reply, state}
   end
 
-  def handle_call(:broadcast_backup, _from, state) do
-    OrderBackup.merge()
-    {:reply, {:received, Node.self()}, state}
+  def handle_call({:delete_order, order}) do
+
   end
+
 end
