@@ -64,7 +64,6 @@ defmodule Elevator do
   end
 
   # Request button press callbacks -----------------------------------------------
-  # TODO: update request lights
   def handle_event(:cast, {:request_button_press, button_type, button_floor}, :door_open, %Elevator{} = e) do
     if e.floor == button_floor do
       Timer.start(e)
@@ -100,6 +99,7 @@ defmodule Elevator do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
       Orders.clear_at_floor(floor)
+      # Notify OrderDistributor of cleared orders
       Timer.start(e)
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else
