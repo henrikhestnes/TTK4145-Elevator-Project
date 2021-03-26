@@ -4,46 +4,42 @@ defmodule OrderDistributor do
   @broadcast_timeout 2000
 
   def start_link do
-    GenServer.start_link(__MODULE__, [])
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def add_order(order = %Order{}, node) do
+  def init(_init_arg) do
+    {:ok, []}
+  end
+
+  def handle_order(order, node) do
     GenServer.call(node, {:add_order, order})
-
   end
 
-  def delete_order(%Order{} = order, node) do
+  def delete_order(order, node) do
     GenServer.call(node, {:delete_order, order})
-
-  end
-
-  def broadcast(order = %Order{}) do
-    GenServer.multi_call(
-      [Node.self() | Node.list()],
-      :Orders,
-      {:new_order, order},
-      @broadcast_timeout
-    )
   end
 
   def request_order_backup() do
-    {replies, bad_nodes} = GenServer.multi_call(
+    {replies, _bad_nodes} = GenServer.multi_call(
       [Node.self() | Node.list()],
       :Orders,
       {:request_backup},
       @broadcast_timeout
     )
 
-    # Todo: Finne en korrekt backup
+    current_backup = OrderBackup.get_orders()
+    OrderBackup.merge(current_backup ++ replies)
   end
 
-  def handle_cast({:request_backup}, _from, state) do
-    # Genserver.cast(__MODULE__, {:send_backup, from})
+  def handle_call(:request_backup, _from, state) do
+    {:reply, OrderBackup.get_orders(), state}
   end
 
   def handle_call({:add_order, order}, _from, state) do
-    Orders.new(order.button_type, order.floor)
-    {:reply, state}
+    Elevator.Orders.new(order.button_type, order.floor)
+    OrderBackup.add_order(order)
+    OrderBackup.broadcast()
+    {:reply, :ok, state}
   end
 
   def handle_call({:delete_order, order}) do
