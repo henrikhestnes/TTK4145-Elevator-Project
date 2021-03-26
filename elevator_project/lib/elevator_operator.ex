@@ -148,7 +148,7 @@ defmodule Elevator do
 
   # Get orders callbacks ---------------------------------------------------------
   def handle_event({:call, from}, :get_orders, _state, _data) do
-    {:keep_state_and_data, [{:reply, from, Orders.orders()}]}
+    {:keep_state_and_data, [{:reply, from, Orders.get()}]}
   end
 
   # Helper functions -------------------------------------------------------------
@@ -253,7 +253,7 @@ defmodule Elevator.Orders do
   end
 
   # Private helper functions -----------------------------------------------------
-  def orders() do
+  defp orders() do
     Agent.get(__MODULE__, fn orders -> orders end)
   end
 
