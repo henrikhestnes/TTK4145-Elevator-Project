@@ -7,7 +7,7 @@ defmodule Network.Init do
   def start_node(node_name) do
     ip = get_ip() |> :inet.ntoa() |> to_string()
     name = node_name <> "@" <> ip
-    Node.start(String.to_existing_atom(name))
+    Node.start(String.to_atom(name))
     Node.set_cookie(@cookie)
   end
 
@@ -52,8 +52,8 @@ defmodule Network.Listen do
     listen(socket)
   end
 
-  defp connect_to(node_name, counter \\ 0) when counter <= @max_connect_attempts do
-    case Node.ping(String.to_existing_atom(node_name)) do
+  def connect_to(node_name, counter \\ 0) when counter <= @max_connect_attempts do
+    case Node.ping(String.to_atom(node_name)) do
       :pang -> connect_to(node_name, counter + 1)
       :pong -> :ok
     end
