@@ -1,7 +1,7 @@
 defmodule OrderBackup do
   use GenServer
 
-  @enforce_keys [:cab_calls, :hall_call]
+  @enforce_keys [:cab_calls, :hall_calls]
   defstruct [:cab_calls, :hall_calls]
 
   # API
@@ -41,6 +41,6 @@ defmodule OrderBackup do
   end
 
   def handle_call(:add_hall_order, _from, state) do
-    
+
   end
 end
