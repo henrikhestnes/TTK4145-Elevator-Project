@@ -5,6 +5,7 @@ defmodule Network.Init do
   @wait_duration 100
 
   def start_node(node_name) do
+    #Unable to start node => run 'epmd -daemon' in terminal
     ip = get_ip() |> :inet.ntoa() |> to_string()
     name = node_name <> "@" <> ip
     Node.start(String.to_atom(name))

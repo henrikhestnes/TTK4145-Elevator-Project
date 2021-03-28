@@ -8,10 +8,8 @@ defmodule OrderAssigner do
     GenServer.start_link(__MODULE__, [], name: @name)
   end
 
-  #example_order = %Order{button_type: :hall_up, floor: 1, watchdog_ref: nil}
-
   # API ------------------------------------------------
-  def new_order(%Order{} = order) do
+  def assign_order(%Order{} = order) do
     case order.button_type do
       :cab    -> GenServer.cast(@name, {:new_cab_order,  order})
       _hall   -> GenServer.cast(@name, {:new_hall_order, order})
@@ -19,6 +17,7 @@ defmodule OrderAssigner do
   end
 
   # Init ------------------------------------------------
+  @impl true
   def init(_init_arg) do
     {:ok, []}
   end
@@ -26,31 +25,29 @@ defmodule OrderAssigner do
   # Casts -----------------------------------------------
   @impl true
   def handle_cast({:new_hall_order, %Order{} = order}, state) do
-    all_nodes = [self() | Node.list]
-    {replies, _bad_nodes} = GenServer.multi_call(all_nodes, @name, {:get_cost, order}, @auction_timeout)
+    own_cost = {Node.self(), CostCalculation.cost(order)}
+    {others_cost, _bad_nodes} = GenServer.multi_call(Node.list(), :cost_calculation, {:get_cost, order}, @auction_timeout)
+    all_costs = [own_cost | others_cost]
     best_elevator =
-    if Enum.any?(replies) do
-      replies |> List.keysort(1) |> List.first() |> elem(0)
-    else
-      :no_response
-    end
+      all_costs
+      |> List.keysort(1)
+      |> List.first()
+      |> elem(0)
     IO.puts(best_elevator)
-    #OrderDistributor.handle_order(order, best_elevator)
+    OrderDistributor.handle_order(order, best_elevator)
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast({:new_cab_order, %Order{} = _order}, state) do
-    #OrderDistributor.handle_order(order, Node.self())
+  def handle_cast({:new_cab_order, %Order{} = order}, state) do
+    OrderDistributor.handle_order(order, Node.self())
     {:noreply, state}
   end
 
   # Calls -----------------------------------------------
   @impl true
-  def handle_call({:get_cost, %Order{} = _order}, _from, state) do
-    ##calculate cost
-    IO.puts("Calculating cost")
-    cost = CostCalculation.cost()
+  def handle_call({:get_cost, %Order{} = order}, _from, state) do
+    cost = CostCalculation.cost(order)
     {:reply, cost, state}
   end
 
@@ -58,12 +55,12 @@ defmodule OrderAssigner do
 end
 
 defmodule OrderAssigner.CostCalculation do
-  def cost() do
-    _num_orders =
-      Elevator.Orders.get()
-      |> Map.values()
-      |> List.flatten()
-      |> length()
 
+  def cost(%Order{} = _order) do
+    #cost only based on length of order map
+    Elevator.Orders.get()
+    |> Map.values()
+    |> List.flatten()
+    |> length()
   end
 end
