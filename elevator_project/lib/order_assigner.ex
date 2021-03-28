@@ -26,8 +26,8 @@ defmodule OrderAssigner do
   @impl true
   def handle_cast({:new_hall_order, %Order{} = order}, state) do
     own_cost = {Node.self(), CostCalculation.cost(order)}
-    {others_cost, _bad_nodes} = GenServer.multi_call(Node.list(), :cost_calculation, {:get_cost, order}, @auction_timeout)
-    all_costs = [own_cost | others_cost]
+    {others_costs, _bad_nodes} = GenServer.multi_call(Node.list(), @name, {:get_cost, order}, @auction_timeout)
+    all_costs = [own_cost | others_costs]
     best_elevator =
       all_costs
       |> List.keysort(1)
