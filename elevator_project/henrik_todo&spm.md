@@ -1,2 +1,3 @@
 - Lasse - skal vi broadaste hele backupen hver gang vi får en ny ordre eller kun den ene nye ordren
 - Bruk av __MODULE__
+- Kan lage en egen funksjon i ElevatorOperator for å slette ordre?
