@@ -2,7 +2,7 @@ defmodule OrderAssigner do
   use GenServer
   alias OrderAssigner.CostCalculation
   @name :order_assigner
-  @auction_timeout 1_000
+  @auction_timeout 100
 
   def start_link do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -26,21 +26,27 @@ defmodule OrderAssigner do
   @impl true
   def handle_cast({:new_hall_order, %Order{} = order}, state) do
     own_cost = {Node.self(), CostCalculation.cost(order)}
-    {others_costs, _bad_nodes} = GenServer.multi_call(Node.list(), @name, {:get_cost, order}, @auction_timeout)
+    {others_costs, _bad_nodes} = GenServer.multi_call(
+      Node.list(),
+      @name,
+      {:get_cost, order},
+      @auction_timeout
+    )
+
     all_costs = [own_cost | others_costs]
-    best_elevator =
+    {best_elevator, _cost} =
       all_costs
       |> List.keysort(1)
       |> List.first()
-      |> elem(0)
+
     IO.puts(best_elevator)
-    OrderDistributor.handle_order(order, best_elevator)
+    OrderDistributor.distribute_order(order, best_elevator)
     {:noreply, state}
   end
 
   @impl true
   def handle_cast({:new_cab_order, %Order{} = order}, state) do
-    OrderDistributor.handle_order(order, Node.self())
+    OrderDistributor.distribute_order(order, Node.self())
     {:noreply, state}
   end
 
