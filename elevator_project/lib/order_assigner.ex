@@ -73,7 +73,7 @@ defmodule OrderAssigner.CostCalculation do
     number_of_orders = orders |> Map.values() |> List.flatten() |> length()
     cond do
       direction == :down and order.floor > floor ->
-        number_of_orders + floor + order.floor
+        number_of_orders + (floor - min_floor(orders)) + (order.floor - min_floor(orders))
 
       direction == :up and order.floor < floor ->
         number_of_orders + (max_floor(orders) - floor) + (max_floor(orders) - order.floor)
@@ -83,11 +83,19 @@ defmodule OrderAssigner.CostCalculation do
     end
   end
 
-  def max_floor(orders) do
+  defp max_floor(orders) do
     orders
     |> Map.values()
     |> List.flatten()
     |> Enum.sort()
     |> List.last()
+  end
+
+  defp min_floor(orders) do
+    orders
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.sort()
+    |> List.first()
   end
 end
