@@ -64,7 +64,7 @@ defmodule Network.Listen do
     end
   end
 
-  defp all_nodes() do
+  def all_nodes() do
     Enum.map([Node.self() | Node.list()], fn node_name -> to_string(node_name) end)
   end
 end

@@ -19,7 +19,7 @@ defmodule OrderDistributor do
     GenServer.call({__MODULE__, node}, {:delete_order, order})
   end
 
-   def broadcast_backup() do
+  def broadcast_backup() do
     GenServer.multi_call(
       [Node.self() | Node.list()],
       :elevator_orders,
@@ -60,5 +60,4 @@ defmodule OrderDistributor do
     Elevator.Orders.delete(order.button_type, order.floor)
     {:reply, :ok, state}
   end
-
 end
