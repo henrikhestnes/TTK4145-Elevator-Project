@@ -193,24 +193,24 @@ end
 
 defmodule Elevator.Orders do
   use Agent
-
+  @name :elevator_orders
   @valid_orders [:cab, :hall_down, :hall_up]
 
   # API --------------------------------------------------------------------------
   def start_link do
-    Agent.start_link(fn -> %{:cab => [], :hall_down => [], :hall_up => []} end, name: __MODULE__)
+    Agent.start_link(fn -> %{:cab => [], :hall_down => [], :hall_up => []} end, name: @name)
   end
 
   def new(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
-    Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
+    Agent.update(@name, fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
   end
 
   def delete(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
-    Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> List.delete(list, floor) end) end)
+    Agent.update(@name, fn map -> Map.update(map, button_type, [], fn list -> List.delete(list, floor) end) end)
   end
 
   def get() do
-    Agent.get(__MODULE__, fn orders -> orders end)
+    Agent.get(@name, fn orders -> orders end)
   end
 
   def choose_direction(%Elevator{} = e) do

@@ -5,6 +5,7 @@ defmodule Network.Init do
   @wait_duration 100
 
   def start_node(node_name) do
+    #Unable to start node => run 'epmd -daemon' in terminal
     ip = get_ip() |> :inet.ntoa() |> to_string()
     name = node_name <> "@" <> ip
     Node.start(String.to_atom(name))
@@ -54,14 +55,17 @@ defmodule Network.Listen do
 
   def connect_to(node_name, counter \\ 0) when counter <= @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
-      :pang -> connect_to(node_name, counter + 1)
-      :pong -> :ok
+      :pang ->
+        IO.puts("Failed to connect to node #{node_name}")
+        connect_to(node_name, counter + 1)
+      :pong ->
+        IO.puts("Connected to node #{node_name}")
+        :ok
     end
   end
 
   defp all_nodes() do
-    [Node.self() | Node.list()]
-    |> Enum.each(fn node -> to_string(node) end)
+    Enum.map([Node.self() | Node.list()], fn node_name -> to_string(node_name) end)
   end
 end
 

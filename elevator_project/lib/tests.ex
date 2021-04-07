@@ -18,11 +18,14 @@ defmodule Test do
   end
 
   def order_assigner_broadcast() do
+    _example_order = %Order{button_type: :hall_up, floor: 1, watchdog_ref: nil}
     #Network.Init.start_node("henrik")
-    #OrderAssigner.start_link()
-    #Elevator.Orders.start_link()
+    OrderAssigner.start_link()
+    Elevator.Orders.start_link()
     Elevator.Orders.new(:hall_up, 2)
+    OrderDistributor.start_link()
+    OrderBackup.start_link()
     order = %Order{button_type: :hall_up, floor: 1, watchdog_ref: nil}
-    OrderAssigner.new_order(order)
+    OrderAssigner.assign_order(order)
   end
 end
