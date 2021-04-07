@@ -8,14 +8,14 @@ defmodule OrderAssigner do
     GenServer.start_link(__MODULE__, [], name: @name)
   end
 
-  # API ------------------------------------------------
+  # API -------------------------------------------------
   def assign_order(%Order{} = order) do
     case order.button_type do
       :cab    -> GenServer.cast(@name, {:new_cab_order,  order})
       _hall   -> GenServer.cast(@name, {:new_hall_order, order})
       end
   end
-
+  
   # Init ------------------------------------------------
   @impl true
   def init(_init_arg) do
@@ -25,7 +25,8 @@ defmodule OrderAssigner do
   # Casts -----------------------------------------------
   @impl true
   def handle_cast({:new_hall_order, %Order{} = order}, state) do
-    own_cost = {Node.self(), CostCalculation.cost(order)}
+    {floor, direction, _state, orders} = Elevator.get_data()
+    own_cost = {Node.self(), CostCalculation.cost(order, floor, direction, orders)}
     {others_costs, _bad_nodes} = GenServer.multi_call(
       Node.list(),
       @name,
