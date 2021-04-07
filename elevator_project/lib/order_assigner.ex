@@ -62,6 +62,7 @@ defmodule OrderAssigner do
   # Helper functions ------------------------------------
 end
 
+
 defmodule OrderAssigner.CostCalculation do
 
   def cost(%Order{} = order, floor, direction, orders) do
