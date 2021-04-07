@@ -53,7 +53,8 @@ defmodule OrderAssigner do
   # Calls -----------------------------------------------
   @impl true
   def handle_call({:get_cost, %Order{} = order}, _from, state) do
-    cost = CostCalculation.cost(order)
+    {floor, direction, _state, orders} = Elevator.get_data()
+    cost = CostCalculation.cost(order, floor, direction, orders)
     {:reply, cost, state}
   end
 
@@ -62,24 +63,31 @@ end
 
 defmodule OrderAssigner.CostCalculation do
 
-  def cost(%Order{} = order) do
+  def cost(%Order{} = order, floor, direction, orders) do
     #cost only based on length of order map
     # Elevator.Orders.get()
     # |> Map.values()
     # |> List.flatten()
     # |> length()
 
-    {floor, direction, state, orders} = Elevator.get_data()
     number_of_orders = orders |> Map.values() |> List.flatten() |> length()
-    initial_cost = number_of_orders + abs(order.floor - floor)
-
     cond do
-      state == :idle ->
-        cost = initial_cost
+      direction == :down and order.floor > floor ->
+        number_of_orders + floor + order.floor
 
-      state ==
-      order.button_type == :hall_up and direction == :down
+      direction == :up and order.floor < floor ->
+        number_of_orders + (max_floor(orders) - floor) + (max_floor(orders) - order.floor)
 
+      true ->
+        number_of_orders + abs(order.floor - floor)
     end
+  end
+
+  def max_floor(orders) do
+    orders
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.sort()
+    |> List.last()
   end
 end
