@@ -23,8 +23,8 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, {:obstruction_sensor_update, is_obstructed})
   end
 
-  def get_orders do
-    GenStateMachine.call(__MODULE__, :get_orders)
+  def get_data do
+    GenStateMachine.call(__MODULE__, :get_data)
   end
 
   # Initialization and termination callbacks -------------------------------------
@@ -147,8 +147,14 @@ defmodule Elevator do
   end
 
   # Get orders callbacks ---------------------------------------------------------
-  def handle_event({:call, from}, :get_orders, _state, _data) do
-    {:keep_state_and_data, [{:reply, from, Orders.get()}]}
+  def handle_event({:call, from}, :get_data, state, %Elevator{} = e) do
+    data = {
+      e.floor,
+      e.direction,
+      state,
+      Orders.get()
+    }
+    {:keep_state_and_data, [{:reply, from, data}]}
   end
 
   # Helper functions -------------------------------------------------------------

@@ -62,11 +62,24 @@ end
 
 defmodule OrderAssigner.CostCalculation do
 
-  def cost(%Order{} = _order) do
+  def cost(%Order{} = order) do
     #cost only based on length of order map
-    Elevator.Orders.get()
-    |> Map.values()
-    |> List.flatten()
-    |> length()
+    # Elevator.Orders.get()
+    # |> Map.values()
+    # |> List.flatten()
+    # |> length()
+
+    {floor, direction, state, orders} = Elevator.get_data()
+    number_of_orders = orders |> Map.values() |> List.flatten() |> length()
+    initial_cost = number_of_orders + abs(order.floor - floor)
+
+    cond do
+      state == :idle ->
+        cost = initial_cost
+
+      state ==
+      order.button_type == :hall_up and direction == :down
+
+    end
   end
 end
