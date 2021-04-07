@@ -23,40 +23,40 @@ defmodule Elevator do
     GenStateMachine.cast(__MODULE__, {:obstruction_sensor_update, is_obstructed})
   end
 
-  def get_orders do
-    GenStateMachine.call(__MODULE__, :get_orders)
+  def get_data do
+    GenStateMachine.call(__MODULE__, :get_data)
   end
 
   # Initialization and termination callbacks -------------------------------------
   def init({:init, _}) do
     Orders.start_link()
 
-    case Driver.get_floor_sensor_state() do
-      :between_floors ->
-        Driver.set_door_open_light(:off)
-        Driver.set_motor_direction(:down)
-        e = %Elevator{
-          floor: nil,
-          direction: :down,
-          timer_ref: nil
-        }
-        {:ok, :moving, e}
+    # case Driver.get_floor_sensor_state() do
+    #   :between_floors ->
+    #     Driver.set_door_open_light(:off)
+    #     Driver.set_motor_direction(:down)
+    #     e = %Elevator{
+    #       floor: nil,
+    #       direction: :down,
+    #       timer_ref: nil
+    #     }
+    #     {:ok, :moving, e}
 
-      floor ->
-        e = %Elevator{
-          floor: floor,
-          direction: :stop,
-          timer_ref: nil
-        }
-        {:ok, :idle, e}
-    end
+    #   floor ->
+    #     e = %Elevator{
+    #       floor: floor,
+    #       direction: :stop,
+    #       timer_ref: nil
+    #     }
+    #     {:ok, :idle, e}
+    # end
 
-    # e = %Elevator{
-    #         floor: nil,
-    #         direction: :down,
-    #         timer_ref: nil,
-    #       }
-    # {:ok, :moving, e}
+    e = %Elevator{
+            floor: nil,
+            direction: :down,
+            timer_ref: nil,
+          }
+    {:ok, :moving, e}
   end
 
   def terminate(_reason, _state, _data) do
@@ -118,8 +118,8 @@ defmodule Elevator do
     direction = Orders.choose_direction(e)
     Driver.set_motor_direction(direction)
     case direction do
-      :stop -> {:next_state, :idle, %{e | direction: direction}}
-      _     -> {:next_state, :moving, %{e | direction: direction}}
+      :stop -> {:next_state, :idle, %{e | direction: direction, timer_ref: nil}}
+      _     -> {:next_state, :moving, %{e | direction: direction, timer_ref: nil}}
     end
   end
 
@@ -147,8 +147,14 @@ defmodule Elevator do
   end
 
   # Get orders callbacks ---------------------------------------------------------
-  def handle_event({:call, from}, :get_orders, _state, _data) do
-    {:keep_state_and_data, [{:reply, from, Orders.get()}]}
+  def handle_event({:call, from}, :get_data, state, %Elevator{} = e) do
+    data = {
+      e.floor,
+      e.direction,
+      state,
+      Orders.get()
+    }
+    {:keep_state_and_data, [{:reply, from, data}]}
   end
 
   # Helper functions -------------------------------------------------------------
@@ -193,24 +199,23 @@ end
 
 defmodule Elevator.Orders do
   use Agent
-  @name :elevator_orders
   @valid_orders [:cab, :hall_down, :hall_up]
 
   # API --------------------------------------------------------------------------
   def start_link do
-    Agent.start_link(fn -> %{:cab => [], :hall_down => [], :hall_up => []} end, name: @name)
+    Agent.start_link(fn -> %{:cab => [], :hall_down => [], :hall_up => []} end, name: __MODULE__)
   end
 
   def new(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
-    Agent.update(@name, fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
+    Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
   end
 
   def delete(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
-    Agent.update(@name, fn map -> Map.update(map, button_type, [], fn list -> List.delete(list, floor) end) end)
+    Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> List.delete(list, floor) end) end)
   end
 
   def get() do
-    Agent.get(@name, fn orders -> orders end)
+    Agent.get(__MODULE__, fn orders -> orders end)
   end
 
   def choose_direction(%Elevator{} = e) do
