@@ -47,7 +47,7 @@ defmodule Network.Listen do
     {:ok, {_ip, _port, node_name}} = :gen_udp.recv(socket, 0)
 
     if node_name not in all_nodes() do
-      connect_to(to_string(node_name))
+      connect_to(node_name)
     end
 
     listen(socket)
@@ -55,13 +55,17 @@ defmodule Network.Listen do
 
   def connect_to(node_name, counter \\ 0) when counter <= @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
-      :pang -> connect_to(node_name, counter + 1)
-      :pong -> :ok
+      :pang ->
+        IO.puts("Failed to connect to node #{node_name}")
+        connect_to(node_name, counter + 1)
+      :pong ->
+        IO.puts("Connected to node #{node_name}")
+        :ok
     end
   end
 
   defp all_nodes() do
-    [Node.self() | Node.list()]
+    Enum.map([Node.self() | Node.list()], fn node_name -> to_string(node_name) end)
   end
 end
 
