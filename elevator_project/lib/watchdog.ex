@@ -1,7 +1,7 @@
 defmodule Watchdog do
   use GenServer
 
-  @watchdog_timeout 2_000
+  @watchdog_timeout 10_000
 
   def start_link do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -19,21 +19,23 @@ defmodule Watchdog do
   # Init ------------------------------------------------
   @impl true
   def init(_args) do
-    {:ok, []}
+    {:ok, %{}}
   end
 
   # Callbacks -------------------------------------------
   @impl true
   def handle_call({:start_timer, %Order{} = order}, _from, active_timers) do
     timer_ref = Process.send_after(self(), {:expired_order, order}, @watchdog_timeout)
-    {:reply, {:ok, timer_ref}, active_timers ++ timer_ref}
+    {:reply, {:ok, timer_ref}, active_timers |> Map.put(order, timer_ref)}
   end
 
   @impl true
   def handle_cast({:stop_timer, %Order{} = order}, active_timers) do
-    if order.watchdog_ref in active_timers do
-      Process.cancel_timer(order.watchdog_ref)
-      {:noreply, active_timers -- order.watchdog_ref}
+    timer_ref = active_timers[order]
+
+    if timer_ref do
+      Process.cancel_timer(timer_ref)
+      {:noreply, active_timers |> Map.delete(order)}
     else
       {:noreply, active_timers}
     end
@@ -41,11 +43,12 @@ defmodule Watchdog do
 
   @impl true
   def handle_info({:expired_order, %Order{} = order}, active_timers) do
-    # reinject order to OrderDistributor,
-    IO.puts("Reinjecting order")
-    {:noreply, active_timers -- order.watchdog_ref}
+    if active_timers[order] do
+      IO.puts("Reinjecting order")
+      # OrderAssigner.assign_order(order)
+      {:noreply, active_timers |> Map.delete(order)}
+    else
+      {:noreply, active_timers}
+    end
   end
-
-  # Helper functions ------------------------------------
-
 end
