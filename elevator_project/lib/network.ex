@@ -47,7 +47,7 @@ defmodule Network.Listen do
     {:ok, {_ip, _port, node_name}} = :gen_udp.recv(socket, 0)
 
     if node_name not in all_nodes() do
-      connect_to(node_name)
+      connect_to(to_string(node_name))
     end
 
     listen(socket)
@@ -62,7 +62,6 @@ defmodule Network.Listen do
 
   defp all_nodes() do
     [Node.self() | Node.list()]
-    |> Enum.each(fn node -> to_string(node) end)
   end
 end
 
