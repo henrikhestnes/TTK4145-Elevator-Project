@@ -12,17 +12,17 @@ defmodule OrderDistributor do
   end
 
   def handle_order(order, node) do
-    GenServer.call(node, {:add_order, order})
+    GenServer.call({__MODULE__, node}, {:add_order, order})
   end
 
   def delete_order(order, node) do
-    GenServer.call(node, {:delete_order, order})
+    GenServer.call({__MODULE__, node}, {:delete_order, order})
   end
 
   def broadcast_backup() do
     GenServer.multi_call(
       [Node.self() | Node.list()],
-      :Orders,
+      :elevator_orders,
       {:new_backup, OrderBackup.get()},
       @broadcast_timeout
     )
@@ -31,7 +31,7 @@ defmodule OrderDistributor do
   def request_order_backup() do
     {replies, _bad_nodes} = GenServer.multi_call(
       [Node.self() | Node.list()],
-      :Orders,
+      :elevator_orders,
       {:request_backup},
       @broadcast_timeout
     )
@@ -46,8 +46,8 @@ defmodule OrderDistributor do
 
   def handle_call({:add_order, order}, _from, state) do
     Elevator.Orders.new(order.button_type, order.floor)
-    OrderBackup.add_order(order)
-    broadcast_backup()
+    #OrderBackup.add_order(order)
+    #broadcast_backup()
     {:reply, :ok, state}
   end
 
