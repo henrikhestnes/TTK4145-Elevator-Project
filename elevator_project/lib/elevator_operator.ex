@@ -99,7 +99,7 @@ defmodule Elevator do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
       Orders.clear_at_floor(floor)
-      # Notify OrderDistributor of cleared orders
+      # OrderDistributor.delete_order(Orders.at_floor(floor))
       Timer.start(e)
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else
@@ -255,6 +255,12 @@ defmodule Elevator.Orders do
     orders()
     |> Map.keys()
     |> Enum.each(fn button_type -> delete(button_type, floor) end)
+  end
+
+  def at_floor(floor) do
+    orders()
+    |> Enum.filter(fn {_button_type, floors} -> floor in floors end)
+    |> Enum.map(fn {button_type, _floors} -> Order.new(button_type, floor) end)
   end
 
   # Private helper functions -----------------------------------------------------
