@@ -17,6 +17,10 @@ defmodule OrderDistributor do
     GenServer.call({@name, node}, {:delete_order, order})
   end
 
+  def delete_orders(orders) do
+    Enum.each(orders, fn order -> delete_order(order, Node.self()) end)
+  end
+
   # Init -----------------------------------------------
   @impl true
   def init(_init_arg) do
@@ -27,8 +31,8 @@ defmodule OrderDistributor do
   @impl true
   def handle_cast({:new_order, order}, state) do
     backup_new_order(order)
-    Elevator.Orders.new(order.button_type, order.floor)
-    #turn on lights
+    Elevator.request_button_press(order.button_type, order.floor)
+    # Turn on order lights
     {:noreply, state}
   end
 
@@ -46,7 +50,8 @@ defmodule OrderDistributor do
 
   @impl true
   def handle_call({:delete_order, order}, _from, state) do
-    Elevator.Orders.delete(order.button_type, order.floor)
+    # Delete from backup
+    # Turn off order lights
     {:reply, :ok, state}
   end
 
