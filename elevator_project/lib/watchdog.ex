@@ -25,6 +25,10 @@ defmodule Watchdog do
   # Callbacks -------------------------------------------
   @impl true
   def handle_call({:start_timer, %Order{} = order}, _from, active_timers) do
+    if active_timers[order] do
+      stop(order)
+    end
+    
     timer_ref = Process.send_after(self(), {:expired_order, order}, @watchdog_timeout)
     {:reply, {:ok, timer_ref}, active_timers |> Map.put(order, timer_ref)}
   end
