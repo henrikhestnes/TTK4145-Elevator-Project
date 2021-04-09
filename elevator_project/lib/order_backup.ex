@@ -92,7 +92,7 @@ defmodule OrderBackup do
       new_merge = Map.merge(
         current_merge,
         Enum.at(cab_calls, index, %{}),
-        fn _node, calls1, calls2 -> Enum.uniq(calls1 ++ calls2) end
+        fn _node, merged_calls, new_calls -> Enum.uniq(merged_calls ++ new_calls) end
       )
       merge_cab_calls(cab_calls, number_of_backups, new_merge, index + 1)
     else
