@@ -99,7 +99,7 @@ defmodule Elevator do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
       Orders.clear_at_floor(floor)
-      OrderDistributor.distribute_completed(Orders.at_floor(floor))
+      OrderDistributor.delete_orders(Orders.at_floor(floor))
       Timer.start(e)
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else

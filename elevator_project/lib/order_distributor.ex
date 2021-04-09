@@ -126,13 +126,28 @@ end
 #     )
 #     #check for packet loss on bad nodes
 
-#     own_backup = {OrderBackup.get(), Node.self()}
+#     own_backup = {Node.self(), OrderBackup.get()}
 #     [own_backup | others_backups]
-#     |> Enum.map(fn {backup, _node} -> backup end)
+#     |> Enum.map(fn {_node, backup} -> backup end)
 #     |> OrderBackup.merge()
 
-#     # Turn on lights for all active orders
-#     # Pass active cab orders to ElevatorOperator
+#     merged_backup = OrderBackup.get()
+#     if own_cab_calls = merged_backup.cab_calls[Node.self()] do
+#       Enum.each(
+#         own_cab_calls,
+#         fn %Order{} = order -> Elevator.request_button_press(order.button_type, order.floor) end
+#       )
+
+#       Enum.each(
+#         own_cab_calls,
+#         fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor,:on) end
+#       )
+#     end
+
+#     Enum.each(
+#       merged_backup.hall_calls,
+#       fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor,:on) end
+#     )
 #   end
 
 #   # Init -----------------------------------------------
