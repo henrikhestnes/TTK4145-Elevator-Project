@@ -31,22 +31,7 @@ defmodule OrderBackup do
   end
 
   def merge(backups) do
-    number_of_backups = length(backups)
-
-    merged_cab_calls = backups
-    |> Enum.map(fn %OrderBackup{} = backup -> backup.cab_calls end)
-    |> merge_cab_calls(number_of_backups)
-
-
-    merged_hall_calls = backups
-    |> Enum.map(fn %OrderBackup{} = backup -> backup.hall_calls end)
-    |> List.flatten()
-    |> Enum.uniq()
-
-    %OrderBackup{
-      cab_calls: merged_cab_calls,
-      hall_calls: merged_hall_calls
-    }
+    GenServer.cast(__MODULE__, {:merge, backups})
   end
 
   # Init -----------------------------------------------
@@ -63,12 +48,12 @@ defmodule OrderBackup do
     {:noreply, %{backup | cab_calls: cab_calls}}
   end
 
-  def handle_cast({:new_hall_order, %Order{} = order}, backup) do
+  def handle_cast({:new_hall_order, %Order{} = order}, %OrderBackup{} = backup) do
     hall_calls = Enum.uniq(backup.hall_calls ++ [order])
     {:noreply, %{backup | hall_calls: hall_calls}}
   end
 
-  def handle_cast({:delete_cab_order, %Order{} = order, node}, backup) do
+  def handle_cast({:delete_cab_order, %Order{} = order, node}, %OrderBackup{} = backup) do
     current_calls = Map.get(backup.cab_calls, node, [])
     updated_calls = Enum.uniq(current_calls -- [order])
 
@@ -76,9 +61,29 @@ defmodule OrderBackup do
     {:noreply, %{backup | cab_calls: cab_calls}}
   end
 
-  def handle_cast({:delete_hall_order, %Order{} = order}, backup) do
+  def handle_cast({:delete_hall_order, %Order{} = order}, %OrderBackup{} = backup) do
     hall_calls = Enum.uniq(backup.hall_calls -- [order])
     {:noreply, %{backup | hall_calls: hall_calls}}
+  end
+
+  def handle_cast({:merge, backups}, _backup) do
+    number_of_backups = length(backups)
+
+    merged_cab_calls = backups
+    |> Enum.map(fn %OrderBackup{} = backup -> backup.cab_calls end)
+    |> merge_cab_calls(number_of_backups)
+
+
+    merged_hall_calls = backups
+    |> Enum.map(fn %OrderBackup{} = backup -> backup.hall_calls end)
+    |> List.flatten()
+    |> Enum.uniq()
+
+    merged_backup = %OrderBackup{
+      cab_calls: merged_cab_calls,
+      hall_calls: merged_hall_calls
+    }
+    {:noreply, merged_backup}
   end
 
   # Calls -----------------------------------------------
