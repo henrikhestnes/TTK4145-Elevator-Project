@@ -11,11 +11,11 @@ defmodule OrderAssigner do
   # API -------------------------------------------------
   def assign_order(%Order{} = order) do
     case order.button_type do
-      :cab    -> GenServer.cast(@name, {:new_cab_order,  order})
-      _hall   -> GenServer.cast(@name, {:new_hall_order, order})
+      :cab  -> GenServer.cast(@name, {:new_cab_order,  order})
+      _hall -> GenServer.cast(@name, {:new_hall_order, order})
       end
   end
-  
+
   # Init ------------------------------------------------
   @impl true
   def init(_init_arg) do
@@ -58,8 +58,6 @@ defmodule OrderAssigner do
     cost = CostCalculation.cost(order, floor, direction, orders)
     {:reply, cost, state}
   end
-
-  # Helper functions ------------------------------------
 end
 
 

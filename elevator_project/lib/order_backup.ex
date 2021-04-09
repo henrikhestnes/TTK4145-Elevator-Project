@@ -30,6 +30,25 @@ defmodule OrderBackup do
     end
   end
 
+  def merge(backups) do
+    number_of_backups = length(backups)
+
+    merged_cab_calls = backups
+    |> Enum.map(fn %OrderBackup{} = backup -> backup.cab_calls end)
+    |> merge_cab_calls(number_of_backups)
+
+
+    merged_hall_calls = backups
+    |> Enum.map(fn %OrderBackup{} = backup -> backup.hall_calls end)
+    |> List.flatten()
+    |> Enum.uniq()
+
+    %OrderBackup{
+      cab_calls: merged_cab_calls,
+      hall_calls: merged_hall_calls
+    }
+  end
+
   # Init -----------------------------------------------
   def init(_init_arg) do
     {:ok, %OrderBackup{cab_calls: %{}, hall_calls: []}}
@@ -68,25 +87,6 @@ defmodule OrderBackup do
   end
 
   # Helper functions ------------------------------------
-  def merge(backups) do
-    number_of_backups = length(backups)
-
-    merged_cab_calls = backups
-    |> Enum.map(fn %OrderBackup{} = backup -> backup.cab_calls end)
-    |> merge_cab_calls(number_of_backups)
-
-
-    merged_hall_calls = backups
-    |> Enum.map(fn %OrderBackup{} = backup -> backup.hall_calls end)
-    |> List.flatten()
-    |> Enum.uniq()
-
-    %OrderBackup{
-      cab_calls: merged_cab_calls,
-      hall_calls: merged_hall_calls
-    }
-  end
-
   defp merge_cab_calls(cab_calls, number_of_backups, current_merge \\ %{}, index \\ 0) do
     if index < number_of_backups do
       new_merge = Map.merge(
