@@ -78,3 +78,91 @@ defmodule OrderDistributor do
     OrderBackup.merge(current_backup ++ replies)
   end
 end
+
+
+# defmodule OrderDistributor do
+#   use GenServer
+
+#   @name :order_distributor
+#   @broadcast_timeout 100
+
+#   def start_link do
+#     GenServer.start_link(__MODULE__, [], name: @name)
+#   end
+
+#   # API ------------------------------------------------
+#   def distribute_new(%Order{} = order, best_elevator) do
+#     GenServer.call(__MODULE__, {:new_order, order, best_elevator}, @broadcast_timeout)
+#     {replies, bad_nodes} = GenServer.multi_call(
+#       Node.list(),
+#       @name,
+#       {:new_order, order, best_elevator},
+#       @broadcast_timeout
+#     )
+#     # Check for packet loss on bad nodes
+#   end
+
+#   def distribute_completed(%Order{} = order) do
+#     GenServer.call(__MODULE__, {:delete_order, order, Node.self()}, @broadcast_timeout)
+#     {replies, bad_nodes} = GenServer.multi_call(
+#       Node.list(),
+#       @name,
+#       {:delete_order, order, Node.self()},
+#       @broadcast_timeout
+#     )
+#     # Check for packet loss on bad nodes
+#   end
+
+#   def distribute_completed(orders) when is_list(orders) do
+#     Enum.each(orders, fn %Order{} = order -> distribute_completed(order) end)
+#   end
+
+#   def request_backup() do
+#     {others_backups, bad_nodes} = GenServer.multi_call(
+#       Node.list(),
+#       @name,
+#       :get_backup,
+#       @broadcast_timeout
+#     )
+#     #check for packet loss on bad nodes
+
+#     own_backup = {OrderBackup.get(), Node.self()}
+#     [own_backup | others_backups]
+#     |> Enum.map(fn {backup, _node} -> backup end)
+#     |> OrderBackup.merge()
+
+#     # Turn on lights for all active orders
+#     # Pass active cab orders to ElevatorOperator
+#   end
+
+#   # Init -----------------------------------------------
+#   @impl true
+#   def init(_init_arg) do
+#     {:ok, []}
+#   end
+
+#   # Calls -----------------------------------------------
+#   @impl true
+#   def handle_call({:new_order, %Order{} = order, best_elevator}, _from, state) do
+#     OrderBackup.new(order, best_elevator)
+#     if best_elevator == Node.self() do
+#       Elevator.request_button_press(order.button_type, order.floor)
+#     end
+#     # Turn on order lights
+#     {:reply, :ok, state}
+#   end
+
+#   @impl true
+#   def handle_call({:delete_order, %Order{} = order, node}, _from, state) do
+#     OrderBackup.delete(order, node)
+#     # Turn off order lights
+#     {:reply, :ok, state}
+#   end
+
+#   @impl true
+#   def handle_call(:get_backup, _from, state) do
+#     {:reply, OrderBackup.get(), state}
+#   end
+
+#   # Helper functions ------------------------------------
+# end
