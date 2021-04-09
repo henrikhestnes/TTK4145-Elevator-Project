@@ -60,6 +60,7 @@ defmodule Network.Listen do
         connect_to(node_name, counter + 1)
       :pong ->
         IO.puts("Connected to node #{node_name}")
+        # OrderDistributor.request_backup()
         :ok
     end
   end
