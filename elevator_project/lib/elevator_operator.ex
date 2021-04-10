@@ -11,8 +11,8 @@ defmodule Elevator do
   end
 
   # API --------------------------------------------------------------------------
-  def request_button_press(button_type, floor) do
-    GenStateMachine.cast(__MODULE__, {:request_button_press, button_type, floor})
+  def request_button_press(%Order{} = order) do
+    GenStateMachine.cast(__MODULE__, {:request_button_press, order})
   end
 
   def floor_arrival(floor) do
@@ -57,29 +57,29 @@ defmodule Elevator do
   end
 
   # Request button press callbacks -----------------------------------------------
-  def handle_event(:cast, {:request_button_press, button_type, button_floor}, :door_open, %Elevator{} = e) do
-    if e.floor == button_floor do
-      OrderDistributor.distribute_completed(Order.new(button_type, button_floor))
+  def handle_event(:cast, {:request_button_press, %Order{} = order}, :door_open, %Elevator{} = e) do
+    if e.floor == order.floor do
+      OrderDistributor.distribute_completed(order)
       Timer.start(e)
     else
-      Orders.new(button_type, button_floor)
+      Orders.new(order)
     end
     :keep_state_and_data
   end
 
-  def handle_event(:cast, {:request_button_press, button_type, button_floor}, :moving, _data) do
-    Orders.new(button_type, button_floor)
+  def handle_event(:cast, {:request_button_press, %Order{} = order}, :moving, _data) do
+    Orders.new(order)
     :keep_state_and_data
   end
 
-  def handle_event(:cast, {:request_button_press, button_type, button_floor}, :idle, %Elevator{} = e) do
-    if e.floor == button_floor do
-      OrderDistributor.distribute_completed(Order.new(button_type, button_floor))
+  def handle_event(:cast, {:request_button_press, %Order{} = order}, :idle, %Elevator{} = e) do
+    if e.floor == order.floor do
+      OrderDistributor.distribute_completed(order)
       Driver.set_door_open_light(:on)
       Timer.start(e)
       {:next_state, :door_open, e}
     else
-      Orders.new(button_type, button_floor)
+      Orders.new(order)
       direction = Orders.choose_direction(e)
       Driver.set_motor_direction(direction)
       {:next_state, :moving, %{e | direction: direction}}
@@ -203,6 +203,10 @@ defmodule Elevator.Orders do
 
   def new(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
     Agent.update(__MODULE__, fn map -> Map.update(map, button_type, [], fn list -> Enum.uniq([floor | list]) end) end)
+  end
+
+  def new(%Order{} = order) do
+    new(order.button_type, order.floor)
   end
 
   def delete(button_type, floor) when is_integer(floor) and button_type in @valid_orders do
