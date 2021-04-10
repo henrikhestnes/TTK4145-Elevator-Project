@@ -54,7 +54,7 @@ defmodule OrderDistributor do
       if own_cab_calls = merged_backup.cab_calls[Node.self()] do
         Enum.each(
         own_cab_calls,
-        fn %Order{} = order -> Elevator.request_button_press(order) end
+        fn %Order{} = order -> Elevator.order_button_press(order) end
         )
 
         Enum.each(
@@ -80,7 +80,7 @@ defmodule OrderDistributor do
   def handle_call({:new_order, %Order{button_type: :cab} = order, best_elevator}, _from, state) do
     OrderBackup.new(order, best_elevator)
     if best_elevator == Node.self() do
-      Elevator.request_button_press(order)
+      Elevator.order_button_press(order)
       Driver.set_order_button_light(order.button_type, order.floor, :on)
     end
     {:reply, :ok, state}
@@ -90,7 +90,7 @@ defmodule OrderDistributor do
   def handle_call({:new_order, %Order{button_type: _hall} = order, best_elevator}, _from, state) do
     OrderBackup.new(order, best_elevator)
     if best_elevator == Node.self() do
-      Elevator.request_button_press(order)
+      Elevator.order_button_press(order)
     end
     Driver.set_order_button_light(order.button_type, order.floor, :on)
     {:reply, :ok, state}
@@ -154,7 +154,7 @@ end
 #   @impl true
 #   def handle_cast({:new_order, order}, state) do
 #     backup_new_order(order)
-#     Elevator.request_button_press(order.button_type, order.floor)
+#     Elevator.order_button_press(order.button_type, order.floor)
 #     # Turn on order lights
 #     {:noreply, state}
 #   end

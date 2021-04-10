@@ -11,7 +11,7 @@ defmodule Elevator do
   end
 
   # API --------------------------------------------------------------------------
-  def request_button_press(%Order{} = order) do
+  def order_button_press(%Order{} = order) do
     GenStateMachine.cast(__MODULE__, {:request_button_press, order})
   end
 
