@@ -46,6 +46,7 @@ defmodule Network.Listen do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(recv_port, [:binary, active: false, broadcast: true, reuseaddr: true])
+    IO.puts("Started listening on port #{recv_port}")
     listen(socket)
   end
 
@@ -59,16 +60,21 @@ defmodule Network.Listen do
     listen(socket)
   end
 
-  def connect_to(node_name, counter \\ 0) when counter <= @max_connect_attempts do
+  def connect_to(node_name, attempt \\ 0)
+  def connect_to(node_name, attempt) when attempt < @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
       :pang ->
         IO.puts("Failed to connect to node #{node_name}")
-        connect_to(node_name, counter + 1)
+        connect_to(node_name, attempt + 1)
       :pong ->
         IO.puts("Connected to node #{node_name}")
         OrderDistributor.request_backup()
         :ok
     end
+  end
+
+  def connect_to(node_name, attempt) when attempt == @max_connect_attempts do
+    IO.puts("Gave up connecting to #{node_name}")
   end
 
   def all_nodes() do
@@ -89,6 +95,7 @@ defmodule Network.Broadcast do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
+    IO.puts("Started broadcasting to port #{recv_port}")
     broadcast(socket, recv_port)
   end
 
