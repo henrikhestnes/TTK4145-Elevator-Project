@@ -41,13 +41,13 @@ defmodule OrderAssigner do
       |> List.first()
 
     IO.puts(best_elevator)
-    OrderDistributor.distribute_order(order, best_elevator)
+    OrderDistributor.distribute_new(order, best_elevator)
     {:noreply, state}
   end
 
   @impl true
   def handle_cast({:new_cab_order, %Order{} = order}, state) do
-    OrderDistributor.distribute_order(order, Node.self())
+    OrderDistributor.distribute_new(order, Node.self())
     {:noreply, state}
   end
 
@@ -64,12 +64,6 @@ end
 defmodule OrderAssigner.CostCalculation do
 
   def cost(%Order{} = order, floor, direction, orders) do
-    #cost only based on length of order map
-    # Elevator.Orders.get()
-    # |> Map.values()
-    # |> List.flatten()
-    # |> length()
-
     number_of_orders = orders |> Map.values() |> List.flatten() |> length()
     cond do
       direction == :down and order.floor > floor ->

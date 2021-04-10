@@ -140,13 +140,13 @@ defmodule OrderDistributor do
 
       Enum.each(
         own_cab_calls,
-        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor,:on) end
+        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
       )
     end
 
     Enum.each(
       merged_backup.hall_calls,
-      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor,:on) end
+      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
     )
   end
 
