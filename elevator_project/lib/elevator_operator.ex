@@ -88,11 +88,11 @@ defmodule Elevator do
   def handle_event(:cast, {:floor_arrival, floor}, :moving, %Elevator{} = e) do
     Driver.set_floor_indicator(floor)
 
-    if Orders.should_stop?(e) do
+    if Orders.should_stop?(%{e | floor: floor}) do
       Driver.set_motor_direction(:stop)
       Driver.set_door_open_light(:on)
-      Orders.clear_at_floor(floor)
       OrderDistributor.distribute_completed(Orders.at_floor(floor))
+      Orders.clear_at_floor(floor)
       Timer.start(e)
       {:next_state, :door_open, %{e | floor: floor, direction: :stop}}
     else

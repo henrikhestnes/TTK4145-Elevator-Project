@@ -40,7 +40,6 @@ defmodule OrderAssigner do
       |> List.keysort(1)
       |> List.first()
 
-    IO.puts(best_elevator)
     OrderDistributor.distribute_new(order, best_elevator)
     {:noreply, state}
   end
