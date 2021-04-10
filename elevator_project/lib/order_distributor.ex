@@ -5,7 +5,7 @@ defmodule OrderDistributor do
   @name :order_distributor
   @broadcast_timeout 100
 
-  def start_link do
+  def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
   end
 

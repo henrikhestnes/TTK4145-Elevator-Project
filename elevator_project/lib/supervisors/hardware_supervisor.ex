@@ -1,4 +1,4 @@
-defmodule Hardware.Supervisor do
+defmodule HardwareSupervisor do
   use Supervisor
 
   def start_link(number_of_floors) do
@@ -7,11 +7,11 @@ defmodule Hardware.Supervisor do
 
   @impl true
   def init(number_of_floors) do
-    :os.cmd('gnome-terminal -x ../../../SimElevatorServer')
+    :os.cmd('gnome-terminal -x ~/Documents/sanntid/project-gruppe-26/SimElevatorServer')
     Process.sleep(100)
 
     children = [
-      {Driver, []},
+      Driver,
       Elevator,
       ObstructionPoller,
       FloorPoller,

@@ -13,7 +13,8 @@ defmodule OrderButtonPoller.Supervisor do
 
     children = Enum.map(
       all_buttons, fn button -> Supervisor.child_spec(
-        {OrderButtonPoller, [button.floor, button.type]},
+        OrderButtonPoller,
+        start: {OrderButtonPoller, :start_link, [button.floor, button.type]},
         id: {OrderButtonPoller, button.floor, button.type},
         restart: :permanent
       ) end

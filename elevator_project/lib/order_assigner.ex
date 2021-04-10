@@ -4,7 +4,7 @@ defmodule OrderAssigner do
   @name :order_assigner
   @auction_timeout 100
 
-  def start_link do
+  def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
   end
 

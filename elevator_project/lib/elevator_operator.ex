@@ -31,32 +31,25 @@ defmodule Elevator do
   def init({:init, _}) do
     Orders.start_link()
 
-    # case Driver.get_floor_sensor_state() do
-    #   :between_floors ->
-    #     Driver.set_door_open_light(:off)
-    #     Driver.set_motor_direction(:down)
-    #     e = %Elevator{
-    #       floor: nil,
-    #       direction: :down,
-    #       timer_ref: nil
-    #     }
-    #     {:ok, :moving, e}
+    case Driver.get_floor_sensor_state() do
+      :between_floors ->
+        Driver.set_door_open_light(:off)
+        Driver.set_motor_direction(:down)
+        e = %Elevator{
+          floor: nil,
+          direction: :down,
+          timer_ref: nil
+        }
+        {:ok, :moving, e}
 
-    #   floor ->
-    #     e = %Elevator{
-    #       floor: floor,
-    #       direction: :stop,
-    #       timer_ref: nil
-    #     }
-    #     {:ok, :idle, e}
-    # end
-
-    e = %Elevator{
-            floor: nil,
-            direction: :down,
-            timer_ref: nil,
-          }
-    {:ok, :moving, e}
+      floor ->
+        e = %Elevator{
+          floor: floor,
+          direction: :stop,
+          timer_ref: nil
+        }
+        {:ok, :idle, e}
+    end
   end
 
   def terminate(_reason, _state, _data) do

@@ -3,7 +3,7 @@ defmodule ObstructionPoller do
 
   use Task
 
-  def start_link do
+  def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:inactive])
   end
 
@@ -25,7 +25,7 @@ defmodule FloorPoller do
 
   use Task
 
-  def start_link do
+  def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:between_floors])
   end
 
@@ -51,7 +51,7 @@ defmodule OrderButtonPoller do
 
   def poller(floor, button_type, prev_state) do
     current_state = Driver.get_order_button_state(floor, button_type)
-    if current_state and not prev_state do
+    if current_state == 1 and prev_state != 1 do
       OrderAssigner.assign_order(Order.new(button_type, floor))
     end
 

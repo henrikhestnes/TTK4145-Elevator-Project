@@ -8,7 +8,7 @@ defmodule OrderBackup do
   # :hall_calls [hall_order1, hall_order2, ...]
 
   # API ----------------------------------------------
-  def start_link do
+  def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
