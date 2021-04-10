@@ -7,6 +7,9 @@ defmodule Hardware.Supervisor do
 
   @impl true
   def init(number_of_floors) do
+    :os.cmd('gnome-terminal -x ../../../SimElevatorServer')
+    Process.sleep(100)
+
     children = [
       {Driver, []},
       Elevator,
