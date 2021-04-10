@@ -52,7 +52,7 @@ defmodule OrderDistributor do
 
       merged_backup = OrderBackup.get()
       if own_cab_calls = merged_backup.cab_calls[Node.self()] do
-      Enum.each(
+        Enum.each(
         own_cab_calls,
         fn %Order{} = order -> Elevator.request_button_press(order.button_type, order.floor) end
         )

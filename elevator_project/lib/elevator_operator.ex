@@ -59,6 +59,7 @@ defmodule Elevator do
   # Request button press callbacks -----------------------------------------------
   def handle_event(:cast, {:request_button_press, button_type, button_floor}, :door_open, %Elevator{} = e) do
     if e.floor == button_floor do
+      OrderDistributor.distribute_completed(Order.new(button_type, button_floor))
       Timer.start(e)
     else
       Orders.new(button_type, button_floor)
@@ -73,6 +74,7 @@ defmodule Elevator do
 
   def handle_event(:cast, {:request_button_press, button_type, button_floor}, :idle, %Elevator{} = e) do
     if e.floor == button_floor do
+      OrderDistributor.distribute_completed(Order.new(button_type, button_floor))
       Driver.set_door_open_light(:on)
       Timer.start(e)
       {:next_state, :door_open, e}
