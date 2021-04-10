@@ -4,8 +4,14 @@ defmodule Network.Init do
   @receive_timeout 100
   @wait_duration 100
 
+  use Task
+
+  def start_link(node_name) do
+    Task.start_link(__MODULE__, :start_node, [node_name])
+  end
+
   def start_node(node_name) do
-    #Unable to start node => run 'epmd -daemon' in terminal
+    # Unable to start node => run 'epmd -daemon' in terminal
     ip = get_ip() |> :inet.ntoa() |> to_string()
     name = node_name <> "@" <> ip
     Node.start(String.to_atom(name))

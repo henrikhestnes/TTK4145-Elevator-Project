@@ -1,15 +1,17 @@
-defmodule NetworkSupervisor do
+defmodule Network.Supervisor do
   @receive_port 8000
   use Supervisor
 
-  def start_link(_init_arg) do
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(node_name) do
+    Supervisor.start_link(__MODULE__, node_name, name: __MODULE__)
   end
 
-  @impl true 
-  def init(_init_arg) do
+  @impl true
+  def init(node_name) do
     children = [
-      {Network, @receive_port}
+      {Network.Init, node_name},
+      {Network.Listen, @receive_port},
+      {Network.Broadcast, @receive_port}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
