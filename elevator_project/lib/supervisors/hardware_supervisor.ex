@@ -20,4 +20,24 @@ defmodule HardwareSupervisor do
 
     Supervisor.init(children, strategy: :one_for_all)
   end
+
+  # def start_link(number_of_floors) do
+  #   Supervisor.start_link(__MODULE__, number_of_floors, name: __MODULE__)
+  # end
+
+  # @impl true
+  # def init(number_of_floors) do
+  #   :os.cmd('gnome-terminal -x ~/SimElevatorServer --numfloors #{number_of_floors}')
+  #   Process.sleep(100)
+
+  #   children = [
+  #     {Driver, []},
+  #     {OrderButtonPoller.Supervisor, number_of_floors},
+  #     ElevatorOperator,
+  #     ObstructionPoller,
+  #     FloorPoller
+  #   ]
+
+  #   Supervisor.init(children, strategy: :one_for_all)
+  # end
 end
