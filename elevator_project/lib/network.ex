@@ -127,25 +127,25 @@ defmodule Network.Broadcast do
   end
 end
 
-defmodule RequestBackupPoller do
-  @poller_sleep_ms 100
+defmodule Network.ConnectionCheck do
+  @check_sleep_ms 100
 
   use Task
 
   def start_link(_init_arg) do
-    Task.start_link(__MODULE__, :poller, [[]])
+    Task.start_link(__MODULE__, :check_connection, [[]])
   end
 
-  def poller(prev_connected_nodes) do
+  def check_connection(prev_connected_nodes) do
     current_connected_nodes = Node.list()
     case {prev_connected_nodes, current_connected_nodes} do
       {[], []}              -> :no_request
-      {[], current_backup}  ->
+      {[], _non_empty_list} ->
         OrderDistributor.request_backup()
       _ -> :ok
     end
 
-    Process.sleep(@poller_sleep_ms)
-    poller(current_connected_nodes)
+    Process.sleep(@check_sleep_ms)
+    check_connection(current_connected_nodes)
   end
 end
