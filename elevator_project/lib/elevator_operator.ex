@@ -30,6 +30,10 @@ defmodule Elevator do
   # Initialization and termination callbacks -------------------------------------
   def init({:init, _}) do
     Orders.start_link()
+    
+    if not Enum.empty?(Node.list()) do
+      OrderDistributor.request_backup()
+    end
 
     case Driver.get_floor_sensor_state() do
       :between_floors ->

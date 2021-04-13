@@ -138,11 +138,8 @@ defmodule Network.ConnectionCheck do
 
   def check_connection(prev_connected_nodes) do
     current_connected_nodes = Node.list()
-    case {prev_connected_nodes, current_connected_nodes} do
-      {[], []}              -> :no_request
-      {[], _non_empty_list} ->
-        OrderDistributor.request_backup()
-      _ -> :ok
+    if Enum.empty?(prev_connected_nodes) and not Enum.empty?(current_connected_nodes) do
+      OrderDistributor.request_backup()
     end
 
     Process.sleep(@check_sleep_ms)
