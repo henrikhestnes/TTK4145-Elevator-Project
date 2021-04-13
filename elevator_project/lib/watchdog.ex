@@ -9,7 +9,7 @@ defmodule Watchdog do
 
   # API -------------------------------------------------
   def start(%Order{} = order) do
-    GenServer.call(__MODULE__, {:start_timer, order})
+    GenServer.cast(__MODULE__, {:start_timer, order})
   end
 
   def stop(%Order{} = order) do
@@ -24,13 +24,13 @@ defmodule Watchdog do
 
   # Callbacks -------------------------------------------
   @impl true
-  def handle_call({:start_timer, %Order{} = order}, _from, active_timers) do
+  def handle_cast({:start_timer, %Order{} = order}, active_timers) do
     if active_timers[order] do
       stop(order)
     end
-    
+
     timer_ref = Process.send_after(self(), {:expired_order, order}, @watchdog_timeout)
-    {:reply, {:ok, timer_ref}, active_timers |> Map.put(order, timer_ref)}
+    {:noreply, active_timers |> Map.put(order, timer_ref)}
   end
 
   @impl true
@@ -49,7 +49,7 @@ defmodule Watchdog do
   def handle_info({:expired_order, %Order{} = order}, active_timers) do
     if active_timers[order] do
       IO.puts("Reinjecting order")
-      # OrderAssigner.assign_order(order)
+      OrderAssigner.assign_order(order)
       {:noreply, active_timers |> Map.delete(order)}
     else
       {:noreply, active_timers}
