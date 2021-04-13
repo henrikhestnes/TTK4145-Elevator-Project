@@ -3,7 +3,7 @@ defmodule OrderDistributor do
   use GenServer
 
   @name :order_distributor
-  @broadcast_timeout 100
+  @call_timeout 100
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -11,20 +11,22 @@ defmodule OrderDistributor do
 
   # API ------------------------------------------------
   def distribute_new(%Order{} = order, best_elevator) do
-    GenServer.call(@name, {:new_order, order, best_elevator}, @broadcast_timeout)
+    GenServer.call(@name, {:new_order, order, best_elevator}, @call_timeout)
     Network.multi_call(
       Node.list(),
       @name,
-      {:new_order, order, best_elevator}
+      {:new_order, order, best_elevator},
+      @call_timeout
     )
   end
 
   def distribute_completed(%Order{} = order) do
-    GenServer.call(@name, {:delete_order, order, Node.self()}, @broadcast_timeout)
+    GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
     Network.multi_call(
       Node.list(),
       @name,
-      {:delete_order, order, Node.self()}
+      {:delete_order, order, Node.self()},
+      @call_timeout
     )
   end
 
@@ -36,7 +38,8 @@ defmodule OrderDistributor do
     others_backups = Network.multi_call(
       Node.list(),
       @name,
-      :get_backup
+      :get_backup,
+      @call_timeout
     )
 
     own_backup = {Node.self(), OrderBackup.get()}
@@ -47,13 +50,13 @@ defmodule OrderDistributor do
     merged_backup = OrderBackup.get()
     if own_cab_calls = merged_backup.cab_calls[Node.self()] do
       Enum.each(
-      own_cab_calls,
-      fn %Order{} = order -> Elevator.order_button_press(order) end
+        own_cab_calls,
+        fn %Order{} = order -> Elevator.order_button_press(order) end
       )
 
       Enum.each(
         own_cab_calls,
-      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
+        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
       )
     end
 
@@ -112,88 +115,4 @@ defmodule OrderDistributor do
   def handle_call(:get_backup, _from, state) do
     {:reply, OrderBackup.get(), state}
   end
-
-  # Helper functions ------------------------------------
 end
-
-
-# defmodule OrderDistributor do
-#   use GenServer
-
-#   @name :order_distributor
-#   @broadcast_timeout 100
-
-#   def start_link do
-#     GenServer.start_link(__MODULE__, [], name: @name)
-#   end
-
-#   # API ------------------------------------------------
-#   def distribute_order(%Order{} = order, node) do
-#     GenServer.cast({@name, node}, {:new_order, order})
-#   end
-
-#   def delete_order(order, node) do
-#     GenServer.call({@name, node}, {:delete_order, order})
-#   end
-
-#   def delete_orders(orders) do
-#     Enum.each(orders, fn order -> delete_order(order, Node.self()) end)
-#   end
-
-#   # Init -----------------------------------------------
-#   @impl true
-#   def init(_init_arg) do
-#     {:ok, []}
-#   end
-
-#   # Casts -----------------------------------------------
-#   @impl true
-#   def handle_cast({:new_order, order}, state) do
-#     backup_new_order(order)
-#     Elevator.order_button_press(order.button_type, order.floor)
-#     # Turn on order lights
-#     {:noreply, state}
-#   end
-
-#   # Calls -----------------------------------------------
-#   @impl true
-#   def handle_call(:request_backup, _from, state) do
-#     {:reply, OrderBackup.get(), state}
-#   end
-
-#   @impl true
-#   def handle_call({:new_backup, backup}, _from, state) do
-#     OrderBackup.merge([backup ++ OrderBackup.get()])
-#     {:reply, :ok, state}
-#   end
-
-#   @impl true
-#   def handle_call({:delete_order, order}, _from, state) do
-#     # Delete from backup
-#     # Turn off order lights
-#     {:reply, :ok, state}
-#   end
-
-#   # Helper functions ------------------------------------
-#   defp backup_new_order(%Order{} = order) do
-
-#     {_replies, _bad_nodes} = GenServer.multi_call(
-#       [Node.self | Node.list()],
-#       :order_backup,
-#       {:backup_new_order, order},
-#       @broadcast_timeout
-#     )
-#     #check for packet loss on bad nodes
-#   end
-
-#   defp request_order_backup() do
-#     {replies, _bad_nodes} = GenServer.multi_call(
-#       [Node.self() | Node.list()],
-#       :elevator_orders,
-#       {:request_backup},
-#       @broadcast_timeout
-#     )
-#     current_backup = OrderBackup.get()
-#     OrderBackup.merge(current_backup ++ replies)
-#   end
-# end

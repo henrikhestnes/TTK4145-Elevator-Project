@@ -1,19 +1,19 @@
 defmodule Network do
-  @call_timeout 100
   @max_call_attempts 5
+  @default_call_timeout 100
 
-  def multi_call(recipitens, name, request, current_replies \\ [], attempt \\ 0) do
+  def multi_call(recipitens, name, request, timeout \\ @default_call_timeout, current_replies \\ [], attempt \\ 0) do
     {new_replies, bad_nodes} = GenServer.multi_call(
       recipitens,
       name,
       request,
-      @call_timeout
+      timeout
     )
 
     replies = current_replies ++ new_replies
     if not Enum.empty?(bad_nodes) and attempt < @max_call_attempts do
       new_recipients = Enum.filter(bad_nodes, fn node -> node in Node.list() end)
-      multi_call(new_recipients, name, request, replies, attempt + 1)
+      multi_call(new_recipients, name, request, timeout, replies, attempt + 1)
     end
 
     replies
@@ -140,7 +140,7 @@ defmodule RequestBackupPoller do
     current_connected_nodes = Node.list()
     case {prev_connected_nodes, current_connected_nodes} do
       {[], []}              -> :no_request
-      {[], current_backup}  -> 
+      {[], current_backup}  ->
         OrderDistributor.request_backup()
       _ -> :ok
     end
