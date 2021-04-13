@@ -11,6 +11,11 @@ defmodule OrderButtonPoller.Supervisor do
   def init(number_of_floors) do
     all_buttons = all_buttons(number_of_floors)
 
+    Enum.each(
+      all_buttons,
+      fn button -> Driver.set_order_button_light(button.type, button.floor, :off) end
+    )
+
     children = Enum.map(
       all_buttons, fn button -> Supervisor.child_spec(
         OrderButtonPoller,
@@ -18,11 +23,6 @@ defmodule OrderButtonPoller.Supervisor do
         id: {OrderButtonPoller, button.floor, button.type},
         restart: :permanent
       ) end
-    )
-
-    Enum.each(
-      all_buttons,
-      fn button -> Driver.set_order_button_light(button.type, button.floor, :off) end
     )
 
     Supervisor.init(children, strategy: :one_for_one)

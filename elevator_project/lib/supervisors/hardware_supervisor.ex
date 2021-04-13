@@ -12,10 +12,10 @@ defmodule HardwareSupervisor do
 
     children = [
       {Driver, [{127,0,0,1}, driver_port]},
+      {OrderButtonPoller.Supervisor, number_of_floors},
       Elevator,
       ObstructionPoller,
-      FloorPoller,
-      {OrderButtonPoller.Supervisor, number_of_floors}
+      FloorPoller
     ]
 
     Supervisor.init(children, strategy: :one_for_all)
