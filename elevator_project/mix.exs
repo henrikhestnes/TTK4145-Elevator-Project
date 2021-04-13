@@ -1,4 +1,4 @@
-defmodule ELEVATOR_SYSTEM.MixProject do
+defmodule ElevatorProject.MixProject do
   use Mix.Project
 
   def project do
@@ -14,6 +14,7 @@ defmodule ELEVATOR_SYSTEM.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {ElevatorProject.Application, []},
       extra_applications: [:logger],
       applications: [:gen_state_machine]
     ]
