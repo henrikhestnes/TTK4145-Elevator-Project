@@ -10,8 +10,8 @@ defmodule ELEVATOR_SYSTEM.Supervisor do
   @impl true
   def init([node_name, driver_port]) do
     children = [
-      {HardwareSupervisor, [@number_of_floors, driver_port]},
       {Network.Supervisor, node_name},
+      {HardwareSupervisor, [@number_of_floors, driver_port]},
       OrderDistributor.Supervisor,
       OrderAssigner.Supervisor,
     ]
