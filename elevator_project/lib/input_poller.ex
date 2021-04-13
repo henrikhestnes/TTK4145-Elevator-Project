@@ -10,8 +10,8 @@ defmodule ObstructionPoller do
   def poller(prev_state) do
     current_state = Driver.get_obstruction_switch_state()
     case {prev_state, current_state} do
-      {:inactive, :active} -> Elevator.obstruction(true)
-      {:active, :inactive} -> Elevator.obstruction(false)
+      {:inactive, :active} -> ElevatorOperator.obstruction(true)
+      {:active, :inactive} -> ElevatorOperator.obstruction(false)
       _ -> :ok
     end
 
@@ -32,7 +32,7 @@ defmodule FloorPoller do
   def poller(prev_state) do
     current_state = Driver.get_floor_sensor_state()
     if current_state != :between_floors and prev_state == :between_floors do
-      Elevator.floor_arrival(current_state)
+      ElevatorOperator.floor_arrival(current_state)
     end
 
     Process.sleep(@poller_sleep_ms)

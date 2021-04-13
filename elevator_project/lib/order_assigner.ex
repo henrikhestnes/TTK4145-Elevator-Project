@@ -26,7 +26,7 @@ defmodule OrderAssigner do
   # Casts -----------------------------------------------
   @impl true
   def handle_cast({:new_hall_order, %Order{} = order, prev_assigned_node}, state) do
-    {floor, direction, _state, orders} = Elevator.get_data()
+    {floor, direction, _state, orders} = ElevatorOperator.get_data()
     own_cost = {Node.self(), CostCalculation.cost(order, floor, direction, orders)}
     others_costs = Network.multi_call(
       Node.list(),
@@ -58,7 +58,7 @@ defmodule OrderAssigner do
   # Calls -----------------------------------------------
   @impl true
   def handle_call({:get_cost, %Order{} = order}, _from, state) do
-    {floor, direction, _state, orders} = Elevator.get_data()
+    {floor, direction, _state, orders} = ElevatorOperator.get_data()
     cost = CostCalculation.cost(order, floor, direction, orders)
     {:reply, cost, state}
   end

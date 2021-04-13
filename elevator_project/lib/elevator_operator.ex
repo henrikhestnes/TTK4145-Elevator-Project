@@ -1,7 +1,8 @@
-defmodule Elevator do
+defmodule ElevatorOperator do
   use GenStateMachine
-  alias Elevator.Timer
-  alias Elevator.Orders
+  alias ElevatorOperator.Timer
+  alias ElevatorOperator.Orders
+  alias ElevatorOperator, as: Elevator
 
   @enforce_keys [:floor, :direction, :is_obstructed, :timer_ref]
   defstruct [:floor, :direction, :is_obstructed, :timer_ref]
@@ -30,7 +31,7 @@ defmodule Elevator do
   # Initialization and termination callbacks -------------------------------------
   def init({:init, _}) do
     Orders.start_link()
-    
+
     if not Enum.empty?(Node.list()) do
       OrderDistributor.request_backup()
     end
@@ -183,7 +184,8 @@ defmodule Elevator do
 end
 
 
-defmodule Elevator.Timer do
+defmodule ElevatorOperator.Timer do
+  alias ElevatorOperator, as: Elevator
   @door_timer_duration 2_000
 
   def start(%Elevator{is_obstructed: false} = e) do
@@ -203,8 +205,9 @@ defmodule Elevator.Timer do
 end
 
 
-defmodule Elevator.Orders do
+defmodule ElevatorOperator.Orders do
   use Agent
+  alias ElevatorOperator, as: Elevator
   @valid_orders [:cab, :hall_down, :hall_up]
 
   # API --------------------------------------------------------------------------
