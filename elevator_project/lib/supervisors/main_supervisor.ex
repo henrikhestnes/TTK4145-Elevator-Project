@@ -1,4 +1,4 @@
-defmodule ELEVATOR_SYSTEM.Supervisor do
+defmodule ElevatorProject.Supervisor do
   @number_of_floors 4
 
   use Supervisor

@@ -13,7 +13,7 @@ defmodule HardwareSupervisor do
     children = [
       {Driver, [{127,0,0,1}, driver_port]},
       {OrderButtonPoller.Supervisor, number_of_floors},
-      Elevator,
+      ElevatorOperator,
       ObstructionPoller,
       FloorPoller
     ]
