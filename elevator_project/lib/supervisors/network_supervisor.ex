@@ -24,7 +24,7 @@ defmodule Network.Supervisor do
   @impl true
   def init(node_name) do
     children = [
-      {Network.Init, node_name},
+      {Network, node_name},
       {Network.Listen, @receive_port},
       {Network.Broadcast, @receive_port}
     ]
