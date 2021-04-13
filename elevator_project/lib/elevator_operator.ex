@@ -3,8 +3,8 @@ defmodule Elevator do
   alias Elevator.Timer
   alias Elevator.Orders
 
-  @enforce_keys [:floor, :direction, :timer_ref]
-  defstruct [:floor, :direction, :timer_ref]
+  @enforce_keys [:floor, :direction, :is_obstructed, :timer_ref]
+  defstruct [:floor, :direction, :is_obstructed, :timer_ref]
 
   def start_link(args \\ []) do
     GenStateMachine.start_link(__MODULE__, {:init, args}, name: __MODULE__)
@@ -38,6 +38,7 @@ defmodule Elevator do
         e = %Elevator{
           floor: nil,
           direction: :down,
+          is_obstructed: false,
           timer_ref: nil
         }
         {:ok, :moving, e}
@@ -46,6 +47,7 @@ defmodule Elevator do
         e = %Elevator{
           floor: floor,
           direction: :stop,
+          is_obstructed: false,
           timer_ref: nil
         }
         {:ok, :idle, e}
@@ -124,16 +126,19 @@ defmodule Elevator do
 
   # Obstruction switch callbacks -------------------------------------------------
   def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, :door_open, %Elevator{} = e) do
+    updated_e = %{e | is_obstructed: is_obstructed}
+
     if is_obstructed do
-      Timer.stop(e)
+      Timer.stop(updated_e)
     else
-      Timer.start(e)
+      Timer.start(updated_e)
     end
-    :keep_state_and_data
+
+    {:keep_state, updated_e}
   end
 
-  def handle_event(:cast, {:obstruction_sensor_update, _}, _state, _data) do
-    :keep_state_and_data
+  def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, _state, %Elevator{} = e) do
+    {:keep_state, %{e | is_obstructed: is_obstructed}}
   end
 
   # Timer callbacks --------------------------------------------------------------
@@ -175,15 +180,17 @@ end
 
 
 defmodule Elevator.Timer do
-  @door_timer_duration 3_000
+  @door_timer_duration 2_000
 
-  def start(%Elevator{} = e) do
+  def start(%Elevator{is_obstructed: false} = e) do
     if e.timer_ref do
       Process.cancel_timer(e.timer_ref)
     end
     timer_ref = Process.send_after(self(), :door_timeout, @door_timer_duration)
     Elevator.timer_update(timer_ref)
   end
+
+  def start(%Elevator{is_obstructed: true}) do end
 
   def stop(%Elevator{} = e) do
     Process.cancel_timer(e.timer_ref)
