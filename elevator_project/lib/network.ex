@@ -1,4 +1,4 @@
-defmodule Network.Init do
+defmodule Network do
   @cookie :heisbois
   @port 6000
   @receive_timeout 100

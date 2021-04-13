@@ -27,7 +27,7 @@ defmodule HardwareSupervisor do
 
   @impl true
   def init([number_of_floors, driver_port]) do
-    :os.cmd('gnome-terminal -x ~/Documents/sanntid/project-gruppe-26/SimElevatorServer --port #{driver_port} --numfloors #{number_of_floors}')
+    :os.cmd('gnome-terminal -x ~/SimElevatorServer --port #{driver_port} --numfloors #{number_of_floors}')
     Process.sleep(100)
 
     children = [
