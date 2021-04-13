@@ -58,7 +58,7 @@ defmodule Network.Init do
 end
 
 defmodule Network.Listen do
-  @max_connect_attempts 5
+  @max_connect_attempts 10
 
   use Task
 

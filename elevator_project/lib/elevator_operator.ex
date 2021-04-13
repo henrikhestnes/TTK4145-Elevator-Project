@@ -125,7 +125,7 @@ defmodule ElevatorOperator do
     end
   end
 
-  def handle_event(:cast, :door_timeout, _state, _data) do
+  def handle_event(:info, :door_timeout, _state, _data) do
     :keep_state_and_data
   end
 
