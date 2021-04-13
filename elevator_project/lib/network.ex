@@ -105,7 +105,7 @@ end
 
 
 defmodule Network.Broadcast do
-  @wait_duration 1_000
+  @wait_duration 100
   @send_port 0
 
   use Task

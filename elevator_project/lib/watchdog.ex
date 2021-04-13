@@ -1,9 +1,9 @@
 defmodule Watchdog do
   use GenServer
 
-  @watchdog_timeout 10_000
+  @watchdog_timeout 20_000
 
-  def start_link do
+  def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
@@ -18,7 +18,7 @@ defmodule Watchdog do
 
   # Init ------------------------------------------------
   @impl true
-  def init(_args) do
+  def init(_init_arg) do
     {:ok, %{}}
   end
 
