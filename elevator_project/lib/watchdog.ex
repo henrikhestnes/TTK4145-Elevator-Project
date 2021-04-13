@@ -8,8 +8,8 @@ defmodule Watchdog do
   end
 
   # API -------------------------------------------------
-  def start(%Order{} = order) do
-    GenServer.cast(__MODULE__, {:start_timer, order})
+  def start(%Order{} = order, assigned_node) do
+    GenServer.cast(__MODULE__, {:start_timer, order, assigned_node})
   end
 
   def stop(%Order{} = order) do
@@ -24,20 +24,23 @@ defmodule Watchdog do
 
   # Callbacks -------------------------------------------
   @impl true
-  def handle_cast({:start_timer, %Order{} = order}, active_timers) do
+  def handle_cast({:start_timer, %Order{} = order, assigned_node}, active_timers) do
     if active_timers[order] do
       stop(order)
     end
 
-    timer_ref = Process.send_after(self(), {:expired_order, order}, @watchdog_timeout)
-    {:noreply, active_timers |> Map.put(order, timer_ref)}
+    timer_ref = Process.send_after(
+      self(),
+      {:expired_order, order, assigned_node},
+      @watchdog_timeout
+    )
+    {:noreply, active_timers |> Map.put(order, {timer_ref, assigned_node})}
   end
 
   @impl true
   def handle_cast({:stop_timer, %Order{} = order}, active_timers) do
-    timer_ref = active_timers[order]
-
-    if timer_ref do
+    if active_timers[order] do
+      {timer_ref, _node} = active_timers[order]
       Process.cancel_timer(timer_ref)
       {:noreply, active_timers |> Map.delete(order)}
     else
@@ -46,10 +49,10 @@ defmodule Watchdog do
   end
 
   @impl true
-  def handle_info({:expired_order, %Order{} = order}, active_timers) do
+  def handle_info({:expired_order, %Order{} = order, prev_assigned_node}, active_timers) do
     if active_timers[order] do
       IO.puts("Reinjecting order")
-      OrderAssigner.assign_order(order)
+      OrderAssigner.assign_order(order, prev_assigned_node)
       {:noreply, active_timers |> Map.delete(order)}
     else
       {:noreply, active_timers}

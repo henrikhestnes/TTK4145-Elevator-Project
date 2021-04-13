@@ -89,7 +89,7 @@ defmodule OrderDistributor do
     if best_elevator == Node.self() do
       Elevator.order_button_press(order)
     end
-    Watchdog.start(order)
+    Watchdog.start(order, best_elevator)
     Driver.set_order_button_light(order.button_type, order.floor, :on)
     {:reply, :ok, state}
   end
