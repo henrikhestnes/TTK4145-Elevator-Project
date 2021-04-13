@@ -26,7 +26,8 @@ defmodule Network.Supervisor do
     children = [
       {Network, node_name},
       {Network.Listen, @receive_port},
-      {Network.Broadcast, @receive_port}
+      {Network.Broadcast, @receive_port},
+      RequestBackupPoller
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
