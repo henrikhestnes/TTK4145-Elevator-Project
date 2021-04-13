@@ -75,7 +75,8 @@ defmodule Network.Listen do
   def listen(socket) do
     {:ok, {_ip, _port, node_name}} = :gen_udp.recv(socket, 0)
 
-    if node_name not in all_nodes() do
+    if node_name not in all_nodes() and node_name != "nonode@nohost" do
+      IO.puts("Attempting to connect to #{node_name}")
       connect_to(node_name)
     end
 
@@ -89,12 +90,10 @@ defmodule Network.Listen do
         connect_to(node_name, attempt + 1)
       :pong ->
         IO.puts("Connected to node #{node_name}")
-        OrderDistributor.request_backup()
-        :ok
     end
   end
 
-  def connect_to(node_name, attempt) when attempt == @max_connect_attempts do
+  def connect_to(node_name, attempt) when attempt >= @max_connect_attempts do
     IO.puts("Gave up connecting to #{node_name}")
   end
 
