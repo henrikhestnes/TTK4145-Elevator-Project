@@ -12,24 +12,20 @@ defmodule OrderDistributor do
   # API ------------------------------------------------
   def distribute_new(%Order{} = order, best_elevator) do
     GenServer.call(@name, {:new_order, order, best_elevator}, @broadcast_timeout)
-    {replies, bad_nodes} = GenServer.multi_call(
+    Network.multi_call(
       Node.list(),
       @name,
-      {:new_order, order, best_elevator},
-      @broadcast_timeout
-      )
-    # Check for packet loss on bad nodes
+      {:new_order, order, best_elevator}
+    )
   end
 
   def distribute_completed(%Order{} = order) do
     GenServer.call(@name, {:delete_order, order, Node.self()}, @broadcast_timeout)
-    {replies, bad_nodes} = GenServer.multi_call(
+    Network.multi_call(
       Node.list(),
       @name,
-      {:delete_order, order, Node.self()},
-      @broadcast_timeout
+      {:delete_order, order, Node.self()}
     )
-    # Check for packet loss on bad nodes
   end
 
   def distribute_completed(orders) when is_list(orders) do
@@ -37,35 +33,33 @@ defmodule OrderDistributor do
   end
 
   def request_backup() do
-    {others_backups, bad_nodes} = GenServer.multi_call(
+    others_backups = Network.multi_call(
       Node.list(),
       @name,
-      :get_backup,
-      @broadcast_timeout
+      :get_backup
+    )
+
+    own_backup = {Node.self(), OrderBackup.get()}
+    [own_backup | others_backups]
+    |> Enum.map(fn {_node, backup} -> backup end)
+    |> OrderBackup.merge()
+
+    merged_backup = OrderBackup.get()
+    if own_cab_calls = merged_backup.cab_calls[Node.self()] do
+      Enum.each(
+      own_cab_calls,
+      fn %Order{} = order -> Elevator.order_button_press(order) end
       )
-      #check for packet loss on bad nodes
-
-      own_backup = {Node.self(), OrderBackup.get()}
-      [own_backup | others_backups]
-      |> Enum.map(fn {_node, backup} -> backup end)
-      |> OrderBackup.merge()
-
-      merged_backup = OrderBackup.get()
-      if own_cab_calls = merged_backup.cab_calls[Node.self()] do
-        Enum.each(
-        own_cab_calls,
-        fn %Order{} = order -> Elevator.order_button_press(order) end
-        )
-
-        Enum.each(
-          own_cab_calls,
-        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
-        )
-      end
 
       Enum.each(
-        merged_backup.hall_calls,
-        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
+        own_cab_calls,
+      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
+      )
+    end
+
+    Enum.each(
+      merged_backup.hall_calls,
+      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
     )
   end
 

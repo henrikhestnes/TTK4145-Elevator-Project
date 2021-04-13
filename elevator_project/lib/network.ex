@@ -1,8 +1,30 @@
 defmodule Network do
+  @call_timeout 100
+  @max_call_attempts 5
+
+  def multi_call(recipitens, name, request, current_replies \\ [], attempt \\ 0) do
+    {new_replies, bad_nodes} = GenServer.multi_call(
+      recipitens,
+      name,
+      request,
+      @call_timeout
+    )
+
+    replies = current_replies ++ new_replies
+    if not Enum.empty?(bad_nodes) and attempt < @max_call_attempts do
+      new_recipients = Enum.filter(bad_nodes, fn node -> node in Node.list() end)
+      multi_call(new_recipients, name, request, replies, attempt + 1)
+    end
+
+    replies
+  end
+end
+
+defmodule Network.Init do
   @cookie :heisbois
   @port 6000
   @receive_timeout 100
-  @wait_duration 100
+  @sleep_duration 100
 
   use Task
 
@@ -26,7 +48,7 @@ defmodule Network do
       {:ok, {ip, _port, _data}} -> ip
       {:error, _reason} ->
         :gen_udp.close(socket)
-        Process.sleep(@wait_duration)
+        Process.sleep(@sleep_duration)
         get_ip()
     end
 
@@ -64,7 +86,6 @@ defmodule Network.Listen do
   def connect_to(node_name, attempt) when attempt < @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
       :pang ->
-        IO.puts("Failed to connect to node #{node_name}")
         connect_to(node_name, attempt + 1)
       :pong ->
         IO.puts("Connected to node #{node_name}")

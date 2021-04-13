@@ -2,7 +2,6 @@ defmodule OrderAssigner do
   use GenServer
   alias OrderAssigner.CostCalculation
   @name :order_assigner
-  @auction_timeout 100
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -27,11 +26,10 @@ defmodule OrderAssigner do
   def handle_cast({:new_hall_order, %Order{} = order}, state) do
     {floor, direction, _state, orders} = Elevator.get_data()
     own_cost = {Node.self(), CostCalculation.cost(order, floor, direction, orders)}
-    {others_costs, _bad_nodes} = GenServer.multi_call(
+    others_costs = Network.multi_call(
       Node.list(),
       @name,
-      {:get_cost, order},
-      @auction_timeout
+      {:get_cost, order}
     )
 
     all_costs = [own_cost | others_costs]
@@ -61,7 +59,6 @@ end
 
 
 defmodule OrderAssigner.CostCalculation do
-
   def cost(%Order{} = order, floor, direction, orders) do
     number_of_orders = orders |> Map.values() |> List.flatten() |> length()
     cond do
