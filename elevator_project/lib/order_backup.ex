@@ -104,30 +104,4 @@ defmodule OrderBackup do
       current_merge
     end
   end
-
-
-  # defp merge(old_backup, backups) do
-  #   [new_backup | remaining_backups] = backups
-  #   []
-  #   new_backup = Enum.filter(next_backup, fn el -> !Enum.member?(old_backup, el) end) ++ old_backup
-  #   case remaining_backups do
-  #     []                ->
-  #     remaining_backups -> merge(new_backup, remaining_backups)
-  #   end
-  # end
-
-  # def merge(backups) do
-  #   [first_backup | remaining_backups] = backups
-  #   merge(first_backup, remaining_backups)
-  # end
-
-  # def merge(backups) do
-  #   new_backup = OrderBackup{}
-  # end
-
-  # def merge(current_backup, new_backup)
-  #   Enum.each(new_backup.cab_calls, fn({key, value}) ->
-
-
-  # Map.merge(current_backup, new_backup, fn _k, )
 end

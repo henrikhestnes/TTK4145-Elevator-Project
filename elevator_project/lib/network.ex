@@ -126,3 +126,26 @@ defmodule Network.Broadcast do
     broadcast(socket, recv_port)
   end
 end
+
+defmodule RequestBackupPoller do
+  @poller_sleep_ms 100
+
+  use Task
+
+  def start_link(_init_arg) do
+    Task.start_link(__MODULE__, :poller, [[]])
+  end
+
+  def poller(prev_connected_nodes) do
+    current_connected_nodes = Node.list()
+    case {prev_connected_nodes, current_connected_nodes} do
+      {[], []}              -> :no_request
+      {[], current_backup}  -> 
+        OrderDistributor.request_backup()
+      _ -> :ok
+    end
+
+    Process.sleep(@poller_sleep_ms)
+    poller(current_connected_nodes)
+  end
+end

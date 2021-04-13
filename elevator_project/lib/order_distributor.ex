@@ -86,6 +86,7 @@ defmodule OrderDistributor do
     if best_elevator == Node.self() do
       Elevator.order_button_press(order)
     end
+    Watchdog.start(order)
     Driver.set_order_button_light(order.button_type, order.floor, :on)
     {:reply, :ok, state}
   end
@@ -102,6 +103,7 @@ defmodule OrderDistributor do
   @impl true
   def handle_call({:delete_order, %Order{button_type: _hall} = order, node}, _from, state) do
     OrderBackup.delete(order, node)
+    Watchdog.stop(order)
     Driver.set_order_button_light(order.button_type, order.floor, :off)
     {:reply, :ok, state}
   end
