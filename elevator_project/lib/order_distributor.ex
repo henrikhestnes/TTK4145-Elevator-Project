@@ -47,11 +47,6 @@ defmodule OrderDistributor do
     |> Enum.map(fn {_node, backup} -> backup end)
     |> OrderBackup.merge()
 
-    Enum.each(
-      Order.all_orders(ElevatorProject.Supervisor.get_number_of_floors()),
-      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :off) end
-    )
-
     merged_backup = OrderBackup.get()
     if own_cab_calls = merged_backup.cab_calls[Node.self()] do
       Enum.each(
@@ -64,11 +59,6 @@ defmodule OrderDistributor do
         fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
       )
     end
-
-    Enum.each(
-      merged_backup.hall_calls,
-      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
-    )
   end
 
   # Init -----------------------------------------------
