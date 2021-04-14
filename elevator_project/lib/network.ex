@@ -1,6 +1,6 @@
 defmodule Network do
   @max_call_attempts 20
-  @default_call_timeout 50
+  @default_call_timeout 1_000
 
   def multi_call(recipitens, name, request, timeout \\ @default_call_timeout, current_replies \\ [], attempt \\ 0) do
     {new_replies, bad_nodes} = GenServer.multi_call(
