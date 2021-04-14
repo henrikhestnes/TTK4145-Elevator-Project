@@ -1,5 +1,5 @@
 defmodule ElevatorProject.Supervisor do
-  @number_of_floors 4
+  @number_of_floors 8
   @node_name "heis"
 
   use Supervisor

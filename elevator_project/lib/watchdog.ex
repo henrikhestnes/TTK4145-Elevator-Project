@@ -39,9 +39,11 @@ defmodule Watchdog do
 
   @impl true
   def handle_cast({:stop_timer, %Order{} = order}, active_timers) do
+    IO.inspect(order, label: "stopping timer")
     if active_timers[order] do
       {timer_ref, _node} = active_timers[order]
       Process.cancel_timer(timer_ref)
+      #IO.inspect(active_timers)
       {:noreply, active_timers |> Map.delete(order)}
     else
       {:noreply, active_timers}
@@ -51,7 +53,7 @@ defmodule Watchdog do
   @impl true
   def handle_info({:expired_order, %Order{} = order, prev_assigned_node}, active_timers) do
     if active_timers[order] do
-      IO.puts("Reinjecting order")
+      #IO.inspect(order, label: "Reinjecting order")
       OrderAssigner.assign_order(order, prev_assigned_node)
       {:noreply, active_timers |> Map.delete(order)}
     else

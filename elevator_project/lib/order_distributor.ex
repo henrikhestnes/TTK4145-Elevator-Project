@@ -27,6 +27,7 @@ defmodule OrderDistributor do
       {:delete_order, order, Node.self()},
       @call_timeout
     )
+    #IO.inspect(order, label: "completed order")
     GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
   end
 
