@@ -35,4 +35,8 @@ defmodule ElevatorProject.Supervisor do
 
   #   Supervisor.init(children, strategy: :one_for_one)
   # end
+  
+  def get_number_of_floors() do
+    @number_of_floors
+  end
 end
