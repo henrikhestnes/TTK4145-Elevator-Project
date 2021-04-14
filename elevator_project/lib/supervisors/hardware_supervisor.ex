@@ -27,7 +27,7 @@ defmodule HardwareSupervisor do
 
   @impl true
   def init(number_of_floors) do
-    :os.cmd('gnome-terminal -x ~/SimElevatorServer --numfloors #{number_of_floors}')
+    :os.cmd('gnome-terminal -x ~/ElevatorServer')
     Process.sleep(100)
 
     children = [
