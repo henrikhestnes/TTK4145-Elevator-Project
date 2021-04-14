@@ -16,6 +16,11 @@ defmodule Network do
       multi_call(new_recipients, name, request, timeout, replies, attempt + 1)
     end
 
+    # if not Enum.empty?(bad_nodes) do
+    #   new_recipients = Enum.filter(bad_nodes, fn node -> node in Node.list() end)
+    #   multi_call(new_recipients, name, request, timeout, replies, attempt + 1)
+    # end
+
     replies
   end
 end
