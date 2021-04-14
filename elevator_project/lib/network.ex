@@ -1,6 +1,6 @@
 defmodule Network do
-  @max_call_attempts 5
-  @default_call_timeout 100
+  @max_call_attempts 20
+  @default_call_timeout 50
 
   def multi_call(recipitens, name, request, timeout \\ @default_call_timeout, current_replies \\ [], attempt \\ 0) do
     {new_replies, bad_nodes} = GenServer.multi_call(
@@ -24,7 +24,7 @@ defmodule Network.Init do
   @cookie :heisbois
   @port 6000
   @receive_timeout 100
-  @sleep_duration 100
+  @sleep_duration 50
 
   use Task
 
@@ -104,7 +104,7 @@ end
 
 
 defmodule Network.Broadcast do
-  @wait_duration 100
+  @wait_duration 500
   @send_port 0
 
   use Task
