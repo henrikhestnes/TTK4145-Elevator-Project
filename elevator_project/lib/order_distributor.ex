@@ -3,7 +3,7 @@ defmodule OrderDistributor do
   use GenServer
 
   @name :order_distributor
-  @call_timeout 10_000
+  @call_timeout 1_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)

@@ -112,7 +112,6 @@ defmodule Network.ConnectionCheck do
   use Task
 
   def start_link(_init_arg) do
-    Process.sleep(2_000)
     Task.start_link(__MODULE__, :check_connection, [[]])
   end
 
