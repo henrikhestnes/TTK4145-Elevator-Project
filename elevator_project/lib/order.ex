@@ -13,13 +13,13 @@ defmodule Order do
   def all_orders(number_of_floors) do
     upper_floor = number_of_floors - 1
     @valid_orders
-    |> Enum.map(fn type ->
-      case type do
+    |> Enum.map(fn button_type ->
+      case button_type do
         :cab        -> 0..upper_floor
         :hall_down  -> 1..upper_floor
         :hall_up    -> 0..(upper_floor - 1)
       end
-      |> Enum.map(fn floor -> %{floor: floor, type: type} end)
+      |> Enum.map(fn floor -> %Order{floor: floor, button_type: button_type} end)
     end)
     |> List.flatten()
   end

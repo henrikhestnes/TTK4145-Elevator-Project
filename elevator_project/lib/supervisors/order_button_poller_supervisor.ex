@@ -7,18 +7,18 @@ defmodule OrderButtonPoller.Supervisor do
 
   @impl true
   def init(number_of_floors) do
-    all_buttons = Orders.all_orders(number_of_floors)
+    all_orders = Order.all_orders(number_of_floors)
 
     Enum.each(
-      all_buttons,
-      fn button -> Driver.set_order_button_light(button.type, button.floor, :off) end
+      all_orders,
+      fn order -> Driver.set_order_button_light(order.button_type, order.floor, :off) end
     )
 
     children = Enum.map(
-      all_buttons, fn button -> Supervisor.child_spec(
+      all_orders, fn order -> Supervisor.child_spec(
         OrderButtonPoller,
-        start: {OrderButtonPoller, :start_link, [button.floor, button.type]},
-        id: {OrderButtonPoller, button.floor, button.type},
+        start: {OrderButtonPoller, :start_link, [order.floor, order.button_type]},
+        id: {OrderButtonPoller, order.floor, order.button_type},
         restart: :permanent
       ) end
     )
