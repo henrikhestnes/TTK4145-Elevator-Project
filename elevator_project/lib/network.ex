@@ -1,30 +1,3 @@
-defmodule Network do
-  @max_call_attempts 20
-  @default_call_timeout 1_000
-
-  def multi_call(recipitens, name, request, timeout \\ @default_call_timeout, current_replies \\ [], attempt \\ 0) do
-    {new_replies, bad_nodes} = GenServer.multi_call(
-      recipitens,
-      name,
-      request,
-      timeout
-    )
-
-    replies = current_replies ++ new_replies
-    if not Enum.empty?(bad_nodes) and attempt < @max_call_attempts do
-      new_recipients = Enum.filter(bad_nodes, fn node -> node in Node.list() end)
-      multi_call(new_recipients, name, request, timeout, replies, attempt + 1)
-    end
-
-    # if not Enum.empty?(bad_nodes) do
-    #   new_recipients = Enum.filter(bad_nodes, fn node -> node in Node.list() end)
-    #   multi_call(new_recipients, name, request, timeout, replies, attempt + 1)
-    # end
-
-    replies
-  end
-end
-
 defmodule Network.Init do
   @cookie :heisbois
   @port 6000
@@ -73,6 +46,7 @@ defmodule Network.Listen do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(recv_port, [:binary, active: false, broadcast: true, reuseaddr: true])
+    Process.sleep(2_000)
     IO.puts("Started listening on port #{recv_port}")
     listen(socket)
   end
@@ -120,6 +94,7 @@ defmodule Network.Broadcast do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
+    Process.sleep(2_000)
     IO.puts("Started broadcasting to port #{recv_port}")
     broadcast(socket, recv_port)
   end
@@ -137,6 +112,7 @@ defmodule Network.ConnectionCheck do
   use Task
 
   def start_link(_init_arg) do
+    Process.sleep(2_000)
     Task.start_link(__MODULE__, :check_connection, [[]])
   end
 

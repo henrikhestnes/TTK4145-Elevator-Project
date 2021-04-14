@@ -3,7 +3,7 @@ defmodule OrderDistributor do
   use GenServer
 
   @name :order_distributor
-  @call_timeout 50
+  @call_timeout 10_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -11,23 +11,23 @@ defmodule OrderDistributor do
 
   # API ------------------------------------------------
   def distribute_new(%Order{} = order, best_elevator) do
-    GenServer.call(@name, {:new_order, order, best_elevator}, @call_timeout)
-    Network.multi_call(
+    GenServer.multi_call(
       Node.list(),
       @name,
       {:new_order, order, best_elevator},
       @call_timeout
     )
-  end
+    GenServer.call(@name, {:new_order, order, best_elevator}, @call_timeout)
+    end
 
   def distribute_completed(%Order{} = order) do
-    GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
-    Network.multi_call(
+    GenServer.multi_call(
       Node.list(),
       @name,
       {:delete_order, order, Node.self()},
       @call_timeout
     )
+    GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
   end
 
   def distribute_completed(orders) when is_list(orders) do
@@ -35,7 +35,7 @@ defmodule OrderDistributor do
   end
 
   def request_backup() do
-    others_backups = Network.multi_call(
+    {others_backups, _bad_nodes} = GenServer.multi_call(
       Node.list(),
       @name,
       :get_backup,
