@@ -21,13 +21,13 @@ defmodule OrderDistributor do
     end
 
   def distribute_completed(%Order{} = order) do
+    IO.inspect(order, label: "completed order")
     GenServer.multi_call(
       Node.list(),
       @name,
       {:delete_order, order, Node.self()},
       @call_timeout
     )
-    #IO.inspect(order, label: "completed order")
     GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
   end
 
@@ -104,6 +104,7 @@ defmodule OrderDistributor do
     OrderBackup.delete(order, node)
     Watchdog.stop(order)
     Driver.set_order_button_light(order.button_type, order.floor, :off)
+    ElevatorOperator.Orders.delete(order.button_type, order.floor)
     {:reply, :ok, state}
   end
 
