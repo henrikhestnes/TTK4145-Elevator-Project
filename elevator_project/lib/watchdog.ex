@@ -14,7 +14,6 @@ defmodule Watchdog do
 
   def stop(%Order{} = order) do
     GenServer.cast(__MODULE__, {:stop_timer, order})
-    # stop må være call
   end
 
   # Init ------------------------------------------------
