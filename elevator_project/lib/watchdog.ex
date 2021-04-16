@@ -14,6 +14,7 @@ defmodule Watchdog do
 
   def stop(%Order{} = order) do
     GenServer.cast(__MODULE__, {:stop_timer, order})
+    # stop må være call
   end
 
   # Init ------------------------------------------------
@@ -26,7 +27,8 @@ defmodule Watchdog do
   @impl true
   def handle_cast({:start_timer, %Order{} = order, assigned_node}, active_timers) do
     if active_timers[order] do
-      stop(order)
+      {timer_ref, _node} = active_timers[order]
+      Process.cancel_timer(timer_ref)
     end
 
     timer_ref = Process.send_after(
@@ -40,10 +42,9 @@ defmodule Watchdog do
   @impl true
   def handle_cast({:stop_timer, %Order{} = order}, active_timers) do
     if active_timers[order] do
-      IO.inspect(order, label: "stopping timer")
+      IO.inspect(order, label: "Stopping timer")
       {timer_ref, _node} = active_timers[order]
       Process.cancel_timer(timer_ref)
-      IO.inspect(active_timers)
       {:noreply, active_timers |> Map.delete(order)}
     else
       {:noreply, active_timers}

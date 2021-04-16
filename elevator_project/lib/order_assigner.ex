@@ -36,13 +36,12 @@ defmodule OrderAssigner do
     )
 
     all_costs = [own_cost | others_costs]
-    #IO.inspect(all_costs)
     lowest_cost =
       all_costs
       |> remove_node(prev_assigned_node)
       |> List.keysort(1)
       |> List.first()
-    #IO.inspect(lowest_cost, label: "Assigning order")
+    IO.inspect([order, lowest_cost], label: "Assigning order")
     case lowest_cost do
       {best_elevator, _cost} -> OrderDistributor.distribute_new(order, best_elevator)
       nil -> :ok
