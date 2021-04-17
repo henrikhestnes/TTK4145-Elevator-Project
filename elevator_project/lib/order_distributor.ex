@@ -41,6 +41,17 @@ defmodule OrderDistributor do
       )
     end
 
+    hall_calls = Enum.filter(
+      backup,
+      fn %Order{} = order -> order.button_type != :cab end
+    )
+    if not Enum.empty?(hall_calls) do
+      Enum.each(
+        hall_calls,
+        fn %Order{} = order -> Watchdog.start(order) end
+      )
+    end
+
     set_orders(backup)
   end
 
@@ -79,14 +90,14 @@ defmodule OrderDistributor do
     if order.owner == Node.self() do
       Driver.set_order_button_light(order.button_type, order.floor, :off)
     end
-    {:reply, :ok, MapSet.delete(orders, order)}
+    {:reply, :ok, remove_order(orders, order)}
   end
 
   @impl true
   def handle_call({:delete_order, %Order{button_type: _hall} = order}, _from, orders) do
     Watchdog.stop(order)
     Driver.set_order_button_light(order.button_type, order.floor, :off)
-    {:reply, :ok, MapSet.delete(orders, order)}
+    {:reply, :ok, remove_order(orders, order)}
   end
 
   @impl true
@@ -107,6 +118,16 @@ defmodule OrderDistributor do
   def all_orders() do
     {all_orders, _bad_nodes} = GenServer.multi_call(@name, :get_orders)
     Enum.map(all_orders, fn {_node, orders} -> orders end)
+  end
+
+  def remove_order(orders, %Order{button_type: :cab} = order) do
+    MapSet.delete(orders, order)
+  end
+
+  def remove_order(orders, %Order{button_type: _hall} = order) do
+    orders
+    |> Enum.filter(fn %Order{} = o -> {o.button_type, o.floor} != {order.button_type, order.floor} end)
+    |> MapSet.new()
   end
 
   defp union(orders) do
