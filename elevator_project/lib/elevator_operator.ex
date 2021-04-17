@@ -199,9 +199,7 @@ defmodule ElevatorOperator.Timer do
   def start(%Elevator{is_obstructed: true}) do end
 
   def stop(%Elevator{} = e) do
-    if e.timer_ref do
-      Process.cancel_timer(e.timer_ref)
-    end
+    Process.cancel_timer(e.timer_ref)
     Elevator.timer_update(nil)
   end
 end
