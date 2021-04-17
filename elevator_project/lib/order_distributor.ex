@@ -10,24 +10,12 @@ defmodule OrderDistributor do
   end
 
   # API ------------------------------------------------
-  def distribute_new(%Order{} = order, best_elevator) do
-    GenServer.multi_call(
-      Node.list(),
-      @name,
-      {:new_order, order, best_elevator},
-      @call_timeout
-    )
-    GenServer.call(@name, {:new_order, order, best_elevator}, @call_timeout)
+  def distribute_new(%Order{} = order) do
+    GenServer.multi_call(@name, {:new_order, order})
     end
 
   def distribute_completed(%Order{} = order) do
-    GenServer.multi_call(
-      Node.list(),
-      @name,
-      {:delete_order, order, Node.self()},
-      @call_timeout
-    )
-    GenServer.call(@name, {:delete_order, order, Node.self()}, @call_timeout)
+    GenServer.multi_call(@name, {:delete_order, order})
   end
 
   def distribute_completed(orders) when is_list(orders) do
@@ -35,20 +23,13 @@ defmodule OrderDistributor do
   end
 
   def request_backup() do
-    {others_backups, _bad_nodes} = GenServer.multi_call(
-      Node.list(),
-      @name,
-      :get_backup,
-      @call_timeout
+    backup = union(all_orders())
+
+    own_cab_calls = Enum.filter(
+      backup,
+      fn %Order{} = order -> order.button_type == :cab and order.owner == Node.self() end
     )
-
-    own_backup = {Node.self(), OrderBackup.get()}
-    [own_backup | others_backups]
-    |> Enum.map(fn {_node, backup} -> backup end)
-    |> OrderBackup.merge()
-
-    merged_backup = OrderBackup.get()
-    if own_cab_calls = merged_backup.cab_calls[Node.self()] do
+    if not Enum.empty?(own_cab_calls) do
       Enum.each(
         own_cab_calls,
         fn %Order{} = order -> ElevatorOperator.order_button_press(order) end
@@ -59,57 +40,86 @@ defmodule OrderDistributor do
         fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
       )
     end
+
+    set_orders(backup)
   end
 
-  # Init -----------------------------------------------
+  def get_orders() do
+    GenServer.call(@name, :get_orders)
+  end
+
+  # Init ------------------------------------------------
   @impl true
   def init(_init_arg) do
-    {:ok, []}
+    {:ok, MapSet.new()}
   end
 
   # Calls -----------------------------------------------
   @impl true
-  def handle_call({:new_order, %Order{button_type: :cab} = order, best_elevator}, _from, state) do
-    OrderBackup.new(order, best_elevator)
-    if best_elevator == Node.self() do
+  def handle_call({:new_order, %Order{button_type: :cab} = order}, _from, orders) do
+    if order.owner == Node.self() do
       ElevatorOperator.order_button_press(order)
       Driver.set_order_button_light(order.button_type, order.floor, :on)
     end
-    {:reply, :ok, state}
+    {:reply, :ok, MapSet.put(orders, order)}
   end
 
   @impl true
-  def handle_call({:new_order, %Order{button_type: _hall} = order, best_elevator}, _from, state) do
-    OrderBackup.new(order, best_elevator)
-    if best_elevator == Node.self() do
+  def handle_call({:new_order, %Order{button_type: _hall} = order}, _from, orders) do
+    if order.owner == Node.self() do
       ElevatorOperator.order_button_press(order)
     end
-    Watchdog.start(order, best_elevator)
+    Watchdog.start(order)
     Driver.set_order_button_light(order.button_type, order.floor, :on)
-    {:reply, :ok, state}
+    {:reply, :ok, MapSet.put(orders, order)}
   end
 
   @impl true
-  def handle_call({:delete_order, %Order{button_type: :cab} = order, node}, _from, state) do
-    OrderBackup.delete(order, node)
-    if node == Node.self() do
+  def handle_call({:delete_order, %Order{button_type: :cab} = order}, _from, orders) do
+    if order.owner == Node.self() do
       Driver.set_order_button_light(order.button_type, order.floor, :off)
     end
-    {:reply, :ok, state}
+    {:reply, :ok, MapSet.delete(orders, order)}
   end
 
   @impl true
-  def handle_call({:delete_order, %Order{button_type: _hall} = order, node}, _from, state) do
-    IO.inspect(order, label: "completed order")
-    OrderBackup.delete(order, node)
+  def handle_call({:delete_order, %Order{button_type: _hall} = order}, _from, orders) do
     Watchdog.stop(order)
     Driver.set_order_button_light(order.button_type, order.floor, :off)
-    ElevatorOperator.Orders.delete(order.button_type, order.floor)
-    {:reply, :ok, state}
+    {:reply, :ok, MapSet.delete(orders, order)}
   end
 
   @impl true
-  def handle_call(:get_backup, _from, state) do
-    {:reply, OrderBackup.get(), state}
+  def handle_call(:get_orders, _from, orders) do
+    {:reply, orders, orders}
+  end
+
+  @impl true
+  def handle_cast({:set_orders, orders}, _orders) do
+    {:noreply, orders}
+  end
+
+  # Helper functions ------------------------------------
+  def set_orders(orders) do
+    GenServer.cast(@name, {:set_orders, orders})
+  end
+
+  def all_orders() do
+    {orders, _bad_nodes} = GenServer.multi_call(@name, :get_orders)
+    orders
+  end
+
+  defp union(orders) do
+    number_of_backups = length(orders)
+    union(orders, number_of_backups, MapSet.new())
+  end
+
+  defp union(orders, number_of_backups, current_union, index \\ 0) do
+    if index < number_of_backups do
+      new_union = MapSet.union(current_union, Enum.at(orders, index))
+      union(orders, number_of_backups, new_union, index + 1)
+    else
+      current_union
+    end
   end
 end
