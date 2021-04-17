@@ -105,8 +105,8 @@ defmodule OrderDistributor do
   end
 
   def all_orders() do
-    {orders, _bad_nodes} = GenServer.multi_call(@name, :get_orders)
-    orders
+    {all_orders, _bad_nodes} = GenServer.multi_call(@name, :get_orders)
+    Enum.map(all_orders, fn {_node, orders} -> orders end)
   end
 
   defp union(orders) do

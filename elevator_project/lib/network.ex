@@ -1,40 +1,3 @@
-defmodule Network.Init do
-  @cookie :heisbois
-  @port 6000
-  @receive_timeout 100
-  @sleep_duration 50
-
-  use Task
-
-  def start_link(node_name) do
-    Task.start_link(__MODULE__, :start_node, [node_name])
-  end
-
-  def start_node(node_name) do
-    # Unable to start node => run 'epmd -daemon' in terminal
-    ip = get_ip() |> :inet.ntoa() |> to_string()
-    name = node_name <> "@" <> ip
-    Node.start(String.to_atom(name))
-    Node.set_cookie(@cookie)
-  end
-
-  defp get_ip() do
-    {:ok, socket} = :gen_udp.open(@port, [:binary, active: false, broadcast: true, reuseaddr: true])
-    :gen_udp.send(socket, {255,255,255,255}, @port, "dummy packet")
-
-    ip = case :gen_udp.recv(socket, 0, @receive_timeout) do
-      {:ok, {ip, _port, _data}} -> ip
-      {:error, _reason} ->
-        :gen_udp.close(socket)
-        Process.sleep(@sleep_duration)
-        get_ip()
-    end
-
-    :gen_udp.close(socket)
-    ip
-  end
-end
-
 defmodule Network.Listen do
   @max_connect_attempts 10
 
@@ -46,7 +9,6 @@ defmodule Network.Listen do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(recv_port, [:binary, active: false, broadcast: true, reuseaddr: true])
-    Process.sleep(2_000)
     IO.puts("Started listening on port #{recv_port}")
     listen(socket)
   end
@@ -94,7 +56,6 @@ defmodule Network.Broadcast do
 
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
-    Process.sleep(2_000)
     IO.puts("Started broadcasting to port #{recv_port}")
     broadcast(socket, recv_port)
   end
