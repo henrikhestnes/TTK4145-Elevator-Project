@@ -1,4 +1,9 @@
 defmodule Driver do
+  @moduledoc """
+  `Driver` is used to controll and monitor an elevator by
+  setting the direction, door open/closed and getting the
+  state of the buttons.
+  """
   use GenServer
   @call_timeout 1000
   @button_map %{:hall_up => 0, :hall_down => 1, :cab => 2}
@@ -29,38 +34,91 @@ defmodule Driver do
     GenServer.cast __MODULE__, {:set_motor_direction, direction}
   end
 
-  # button_type can be :hall_up/:hall_down/:cab
-  # state can be :on/:off
+  @doc """
+  Set Order button lights.
+
+  ## Parameters
+
+    - button_type: Can be :hall_up/:hall_down/:cab
+    - floor: Integer indicating floor number
+    - state: Can be :on/:off
+  """
   def set_order_button_light button_type, floor, state do
     GenServer.cast __MODULE__, {:set_order_button_light, button_type, floor, state}
   end
 
+  @doc """
+  Set the floor indicator on a given floor.
+
+  ## Parameters
+
+    - floor: Integer indicating floor number
+  """
   def set_floor_indicator floor do
     GenServer.cast __MODULE__, {:set_floor_indicator, floor}
   end
 
-  # state can be :on/:off
+   @doc """
+  Sets the stop button ligth either on or off.
+
+  ## Parameters
+
+    - state: Can be :on/:off
+  """
   def set_stop_button_light state do
     GenServer.cast __MODULE__, {:set_stop_button_light, state}
   end
 
-  # state can be :on/:off
+   @doc """
+  Sets the door open ligth.
+
+  ## Parameters
+
+    - state: Can be :on/:off
+  """
   def set_door_open_light state do
     GenServer.cast __MODULE__, {:set_door_open_light, state}
   end
 
+  @doc """
+  Retrieves the order button state from a given floor and button type
+
+  ## Parameters
+
+    - button_type: Can be :hall_up/:hall_down/:cab
+    - floor: Integer indicating floor number
+  """
   def get_order_button_state floor, button_type do
     GenServer.call __MODULE__, {:get_order_button_state, floor, button_type}
   end
 
+  @doc """
+  Retrieves the current floor state 
+ 
+  ## Return
+    - floor_state: Integer of current floor/:in_between_floors
+  """
   def get_floor_sensor_state do
     GenServer.call __MODULE__, :get_floor_sensor_state
   end
 
+  @doc """
+  Retrieves the stop button state
+
+  ## Return
+    - stop_button_state: :inactive/active
+  """
   def get_stop_button_state do
     GenServer.call __MODULE__, :get_stop_button_state
   end
 
+    @doc """
+  Retrieves the obstruction switch state
+
+  ## Return
+
+    - obstruction_switch_state: :inactive/:active
+  """
   def get_obstruction_switch_state do
     GenServer.call __MODULE__, :get_obstruction_switch_state
   end

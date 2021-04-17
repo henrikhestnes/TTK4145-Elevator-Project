@@ -1,4 +1,8 @@
 defmodule Network.Init do
+@moduledoc """
+`Network.Init` is responsible for creating a node name and retrieving 
+the ip adress.
+"""
   @cookie :heisbois
   @port 6000
   @receive_timeout 100
@@ -10,6 +14,13 @@ defmodule Network.Init do
     Task.start_link(__MODULE__, :start_node, [node_name])
   end
 
+  @doc """
+  `start_node/1` retrieves the ip, starts a node with
+  the name it creates and sets the cookie.
+
+  ## Parameters 
+    - node_name:  Node name :: String
+  """
   def start_node(node_name) do
     # Unable to start node => run 'epmd -daemon' in terminal
     ip = get_ip() |> :inet.ntoa() |> to_string()
@@ -36,6 +47,9 @@ defmodule Network.Init do
 end
 
 defmodule Network.Listen do
+@moduledoc """
+`Network.Listen` is responsible for connecting new nodes to the cluster.
+"""
   @max_connect_attempts 10
 
   use Task
@@ -44,6 +58,12 @@ defmodule Network.Listen do
     Task.start_link(__MODULE__, :init, [recv_port])
   end
 
+  @doc """
+  `init/1` opens a socket and starts listening by calling `listen/1`.
+
+  ## Parameters
+    - recv_port: Port number :: Integer 
+  """
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(recv_port, [:binary, active: false, broadcast: true, reuseaddr: true])
     Process.sleep(2_000)
@@ -51,6 +71,13 @@ defmodule Network.Listen do
     listen(socket)
   end
 
+  @doc """
+  `listen/1` listens for new nodes and connects the new node to 
+  the current cluster. 
+
+  ## Parameters 
+    - socket: Socket number :: Integer 
+  """
   def listen(socket) do
     {:ok, {_ip, _port, node_name}} = :gen_udp.recv(socket, 0)
 
@@ -62,6 +89,13 @@ defmodule Network.Listen do
     listen(socket)
   end
 
+  @doc """
+  `connect_to/2` connects a node to the cluster. 
+
+  ## Parameters 
+    - node_name: Node name :: String 
+    - attemt: Number of connection attemts :: Integer
+  """
   def connect_to(node_name, attempt \\ 0)
   def connect_to(node_name, attempt) when attempt < @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
@@ -76,6 +110,9 @@ defmodule Network.Listen do
     IO.puts("Gave up connecting to #{node_name}")
   end
 
+  @doc """
+  Returns list of all nodes.
+  """
   def all_nodes() do
     Enum.map([Node.self() | Node.list()], fn node_name -> to_string(node_name) end)
   end
@@ -83,6 +120,10 @@ end
 
 
 defmodule Network.Broadcast do
+  @moduledoc """
+  `Network.Broadcast` is responsible for broadcasting the node name, so that
+  the node can be discovered by other nodes. 
+  """
   @wait_duration 500
   @send_port 0
 
@@ -92,6 +133,13 @@ defmodule Network.Broadcast do
     Task.start_link(__MODULE__, :init, [recv_port])
   end
 
+  @doc """
+  `init/1` initializes `broadcast/2` with the correct socket and receive 
+  port
+
+  ## Parameters
+    - recv_port: port number :: Integer
+  """
   def init(recv_port) do
     {:ok, socket} = :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
     Process.sleep(2_000)
@@ -99,6 +147,13 @@ defmodule Network.Broadcast do
     broadcast(socket, recv_port)
   end
 
+  @doc """
+  `broadcast/2` broadcasts the node name.
+
+  ## Parameters 
+    - socket: Socket number :: Integer 
+    - recv_port: Port number :: Integer
+  """
   def broadcast(socket, recv_port) do
     :gen_udp.send(socket, {255,255,255,255}, recv_port, to_string(Node.self()))
     Process.sleep(@wait_duration)
@@ -107,6 +162,9 @@ defmodule Network.Broadcast do
 end
 
 defmodule Network.ConnectionCheck do
+@moduledoc """
+
+"""
   @check_sleep_ms 100
 
   use Task
