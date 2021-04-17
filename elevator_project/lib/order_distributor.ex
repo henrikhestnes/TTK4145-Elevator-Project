@@ -1,5 +1,16 @@
-
 defmodule OrderDistributor do
+  @moduledoc """
+  Distributing orders to the best suited elevator.
+  Tells `OrderBackup` to add order, `Watchdog` to start watchdog timer,
+  `ElevatorOperator` to take the order if it is assigned and `Driver` to set lights.
+
+  Uses the following modules:
+  - `OrderBackup`
+  - `Watchdog`
+  - `ElevatorOperator`
+  - `Driver`
+  - `Order`
+  """
   use GenServer
 
   @name :order_distributor
@@ -10,6 +21,17 @@ defmodule OrderDistributor do
   end
 
   # API ------------------------------------------------
+  @doc """
+  Distributes given order to best suited elevator, and tells the other elevators
+  that a order is distributed to a given elevator.
+
+  ## Parameters
+    - order: Order struct on the form defined in module `Order`
+    - best_elevator: Which elevator serving the order
+
+  ## Return
+    - :ok
+  """
   def distribute_new(%Order{} = order, best_elevator) do
     GenServer.multi_call(
       Node.list(),
@@ -18,8 +40,17 @@ defmodule OrderDistributor do
       @call_timeout
     )
     GenServer.call(@name, {:new_order, order, best_elevator}, @call_timeout)
-    end
+  end
 
+  @doc """
+  Tells all elevator that given order(s) is completed
+
+  ## Parameters
+    - order: Order struct on the form defined in module `Order`
+
+  ## Return
+    - :ok
+  """
   def distribute_completed(%Order{} = order) do
     GenServer.multi_call(
       Node.list(),
@@ -34,6 +65,13 @@ defmodule OrderDistributor do
     Enum.each(orders, fn %Order{} = order -> distribute_completed(order) end)
   end
 
+  @doc """
+  Requests backups for all other elevators, and merges these
+  backups together with its own.
+
+  ## Return
+    - :ok
+  """
   def request_backup() do
     {others_backups, _bad_nodes} = GenServer.multi_call(
       Node.list(),
