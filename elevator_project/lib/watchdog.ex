@@ -1,4 +1,13 @@
 defmodule Watchdog do
+  @moduledoc """
+  Starts a watchdog for every new hall order distributed, and stops it when the order is completed.
+  If a watchdog timer runs out, the corresponding hall order gets redistributed to another elevator.
+
+  Uses the following modules:
+  - `OrderAssigner`
+  - `Order`
+  """
+
   use GenServer
 
   @watchdog_timeout 20_000
@@ -8,10 +17,29 @@ defmodule Watchdog do
   end
 
   # API -------------------------------------------------
+  @doc """
+  Casting to the module that a new watchdog should be started, and which elevator serving the order.
+
+  ##  Parameters
+    - order: Order struct on the form defined in module `Order`
+    - assigned node: Which elevator currently serving the order
+
+  ## Return
+    - :ok
+  """
   def start(%Order{} = order, assigned_node) do
     GenServer.cast(__MODULE__, {:start_timer, order, assigned_node})
   end
 
+  @doc """
+  Casting to the module that the watchdog on the order parameter should be stopped.
+
+  ## Parameters
+    - order: Order struct on the form defined in module `Order`
+
+  ## Return
+    - :ok
+  """
   def stop(%Order{} = order) do
     GenServer.cast(__MODULE__, {:stop_timer, order})
   end

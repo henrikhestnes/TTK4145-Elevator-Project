@@ -1,4 +1,11 @@
 defmodule OrderBackup do
+  @moduledoc """
+  Generate backup of all hall orders, as well as cab orders for each elevator.
+
+  Uses the following module:
+  - `Order`
+  """
+
   use GenServer
 
   @enforce_keys [:cab_calls, :hall_calls]
