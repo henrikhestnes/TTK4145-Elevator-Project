@@ -160,14 +160,14 @@ defmodule ElevatorOperator do
   # Helper functions -------------------------------------------------------------
   def own_orders() do
     Enum.filter(
-      OrderDistributor.get_orders(),
+      Orders.get(),
       fn %Order{} = order -> order.owner == Node.self() end
     )
   end
 
   def own_orders(floor) do
     Enum.filter(
-      OrderDistributor.get_orders(),
+      Orders.get(),
       fn %Order{} = order -> order.owner == Node.self() and order.floor == floor end
     )
   end

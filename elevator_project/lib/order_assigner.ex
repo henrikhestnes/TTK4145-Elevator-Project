@@ -2,7 +2,7 @@ defmodule OrderAssigner do
   use GenServer
 
   @name :order_assigner
-  @call_timeout 3_000
+  @call_timeout 5_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)

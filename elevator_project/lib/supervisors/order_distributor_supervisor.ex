@@ -8,7 +8,8 @@ defmodule OrderDistributor.Supervisor do
   @impl true
   def init(_init_arg) do
     children = [
-      OrderDistributor
+      OrderDistributor,
+      Orders
     ]
 
     Supervisor.init(children, strategy: :one_for_all)
