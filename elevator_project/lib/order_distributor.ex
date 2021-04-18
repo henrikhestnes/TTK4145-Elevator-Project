@@ -3,7 +3,7 @@ defmodule OrderDistributor do
   use GenServer
 
   @name :order_distributor
-  @call_timeout 1_000
+  @call_timeout 2_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -11,11 +11,21 @@ defmodule OrderDistributor do
 
   # API ------------------------------------------------
   def distribute_new(%Order{} = order) do
-    GenServer.multi_call(@name, {:new_order, order})
-    end
+    GenServer.multi_call(
+      [Node.self() | Node.list()],
+      @name,
+      {:new_order, order},
+      @call_timeout
+    )
+  end
 
   def distribute_completed(%Order{} = order) do
-    GenServer.multi_call(@name, {:delete_order, order})
+    GenServer.multi_call(
+      [Node.self() | Node.list()],
+      @name,
+      {:delete_order, order},
+      @call_timeout
+    )
   end
 
   def distribute_completed(orders) when is_list(orders) do
@@ -33,7 +43,6 @@ defmodule OrderDistributor do
       own_cab_calls,
       fn %Order{} = order -> ElevatorOperator.order_button_press(order) end
     )
-
     Enum.each(
       own_cab_calls,
       fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
@@ -112,7 +121,12 @@ defmodule OrderDistributor do
   end
 
   def all_orders() do
-    {all_orders, _bad_nodes} = GenServer.multi_call(@name, :get_orders)
+    {all_orders, _bad_nodes} = GenServer.multi_call(
+      [Node.self() | Node.list()],
+      @name,
+      :get_orders,
+      @call_timeout
+    )
     Enum.map(all_orders, fn {_node, orders} -> orders end)
   end
 

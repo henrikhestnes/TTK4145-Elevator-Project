@@ -1,9 +1,8 @@
 defmodule OrderAssigner do
   use GenServer
-  alias OrderAssigner.CostCalculation
 
   @name :order_assigner
-  @call_timeout 1_000
+  @call_timeout 2_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: @name)
@@ -44,13 +43,18 @@ defmodule OrderAssigner do
   @impl true
   def handle_call({:get_cost, %Order{} = order}, _from, state) do
     {floor, direction, _state, orders} = ElevatorOperator.get_data()
-    cost = CostCalculation.cost(order, floor, direction, orders)
+    cost = OrderAssigner.CostCalculation.cost(order, floor, direction, orders)
     {:reply, cost, state}
   end
 
   # Helper functions ------------------------------------
   def all_costs(%Order{} = order) do
-    {costs, _bad_nodes} = GenServer.multi_call(@name, {:get_cost, order})
+    {costs, _bad_nodes} = GenServer.multi_call(
+      [Node.self() | Node.list()],
+      @name,
+      {:get_cost, order},
+      @call_timeout
+    )
     costs
   end
 
