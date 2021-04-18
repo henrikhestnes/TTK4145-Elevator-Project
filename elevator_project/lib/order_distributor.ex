@@ -29,28 +29,24 @@ defmodule OrderDistributor do
       backup,
       fn %Order{} = order -> order.button_type == :cab and order.owner == Node.self() end
     )
-    if not Enum.empty?(own_cab_calls) do
-      Enum.each(
-        own_cab_calls,
-        fn %Order{} = order -> ElevatorOperator.order_button_press(order) end
-      )
+    Enum.each(
+      own_cab_calls,
+      fn %Order{} = order -> ElevatorOperator.order_button_press(order) end
+    )
 
-      Enum.each(
-        own_cab_calls,
-        fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
-      )
-    end
+    Enum.each(
+      own_cab_calls,
+      fn %Order{} = order -> Driver.set_order_button_light(order.button_type, order.floor, :on) end
+    )
 
     hall_calls = Enum.filter(
       backup,
       fn %Order{} = order -> order.button_type != :cab end
     )
-    if not Enum.empty?(hall_calls) do
-      Enum.each(
-        hall_calls,
-        fn %Order{} = order -> Watchdog.start(order) end
-      )
-    end
+    Enum.each(
+      hall_calls,
+      fn %Order{} = order -> Watchdog.start(order) end
+    )
 
     set_orders(backup)
   end
