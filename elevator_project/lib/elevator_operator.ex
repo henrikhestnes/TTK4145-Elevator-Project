@@ -40,12 +40,14 @@ defmodule ElevatorOperator do
       :between_floors ->
         Driver.set_door_open_light(:off)
         Driver.set_motor_direction(:down)
+
         e = %Elevator{
           floor: nil,
           direction: :down,
           is_obstructed: false,
           timer_ref: nil
         }
+
         {:ok, :moving, e}
 
       floor ->
@@ -55,6 +57,7 @@ defmodule ElevatorOperator do
           is_obstructed: false,
           timer_ref: nil
         }
+
         {:ok, :idle, e}
     end
   end
@@ -69,6 +72,7 @@ defmodule ElevatorOperator do
       OrderDistributor.distribute_completed(order)
       ElevatorOperator.DoorTimer.start(e)
     end
+
     :keep_state_and_data
   end
 
@@ -114,9 +118,10 @@ defmodule ElevatorOperator do
     Driver.set_door_open_light(:off)
     direction = choose_direction(e)
     Driver.set_motor_direction(direction)
+
     case direction do
       :stop -> {:next_state, :idle, %{e | direction: direction, timer_ref: nil}}
-      _     -> {:next_state, :moving, %{e | direction: direction, timer_ref: nil}}
+      _ -> {:next_state, :moving, %{e | direction: direction, timer_ref: nil}}
     end
   end
 
@@ -125,7 +130,12 @@ defmodule ElevatorOperator do
   end
 
   # Obstruction switch callbacks -------------------------------------------------
-  def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, :door_open, %Elevator{} = e) do
+  def handle_event(
+        :cast,
+        {:obstruction_sensor_update, is_obstructed},
+        :door_open,
+        %Elevator{} = e
+      ) do
     updated_e = %{e | is_obstructed: is_obstructed}
 
     if is_obstructed do
@@ -154,6 +164,7 @@ defmodule ElevatorOperator do
       state,
       own_orders()
     }
+
     {:keep_state_and_data, [{:reply, from, data}]}
   end
 
@@ -181,7 +192,7 @@ defmodule ElevatorOperator do
           true -> :stop
         end
 
-      _->
+      _ ->
         cond do
           orders_below?(e) -> :down
           orders_above?(e) -> :up
@@ -193,18 +204,24 @@ defmodule ElevatorOperator do
   def should_stop?(%Elevator{} = e) do
     case e.direction do
       :up ->
-        relevant_orders = Enum.filter(
-          own_orders(e.floor),
-          fn %Order{} = order -> order.button_type in [:cab, :hall_up] end
-        )
+        relevant_orders =
+          Enum.filter(
+            own_orders(e.floor),
+            fn %Order{} = order -> order.button_type in [:cab, :hall_up] end
+          )
+
         not orders_above?(e) or not Enum.empty?(relevant_orders)
+
       :down ->
-        relevant_orders = Enum.filter(
-          own_orders(e.floor),
-          fn %Order{} = order -> order.button_type in [:cab, :hall_down] end
-        )
+        relevant_orders =
+          Enum.filter(
+            own_orders(e.floor),
+            fn %Order{} = order -> order.button_type in [:cab, :hall_down] end
+          )
+
         not orders_below?(e) or not Enum.empty?(relevant_orders)
-      _->
+
+      _ ->
         true
     end
   end
@@ -212,16 +229,15 @@ defmodule ElevatorOperator do
   def orders_above?(%Elevator{} = e) do
     own_orders()
     |> Enum.filter(fn %Order{} = order -> order.floor > e.floor end)
-    |> Enum.any?
+    |> Enum.any?()
   end
 
   def orders_below?(%Elevator{} = e) do
     own_orders()
     |> Enum.filter(fn %Order{} = order -> order.floor < e.floor end)
-    |> Enum.any?
+    |> Enum.any?()
   end
 end
-
 
 defmodule ElevatorOperator.DoorTimer do
   alias ElevatorOperator, as: Elevator
@@ -231,11 +247,13 @@ defmodule ElevatorOperator.DoorTimer do
     if e.timer_ref do
       Process.cancel_timer(e.timer_ref)
     end
+
     timer_ref = Process.send_after(self(), :door_timeout, @door_timer_duration)
     Elevator.timer_update(timer_ref)
   end
 
-  def start(%Elevator{is_obstructed: true}) do end
+  def start(%Elevator{is_obstructed: true}) do
+  end
 
   def stop(%Elevator{} = e) do
     Process.cancel_timer(e.timer_ref)

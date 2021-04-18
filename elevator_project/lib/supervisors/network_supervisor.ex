@@ -29,16 +29,21 @@ defmodule Network.Supervisor do
   end
 
   defp get_ip() do
-    {:ok, socket} = :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
-    :gen_udp.send(socket, {255,255,255,255}, @send_port, "dummy packet")
+    {:ok, socket} =
+      :gen_udp.open(@send_port, [:binary, active: false, broadcast: true, reuseaddr: true])
 
-    ip = case :gen_udp.recv(socket, 0, @receive_timeout) do
-      {:ok, {ip, _port, _data}} -> ip
-      {:error, _reason} ->
-        :gen_udp.close(socket)
-        Process.sleep(@sleep_duration)
-        get_ip()
-    end
+    :gen_udp.send(socket, {255, 255, 255, 255}, @send_port, "dummy packet")
+
+    ip =
+      case :gen_udp.recv(socket, 0, @receive_timeout) do
+        {:ok, {ip, _port, _data}} ->
+          ip
+
+        {:error, _reason} ->
+          :gen_udp.close(socket)
+          Process.sleep(@sleep_duration)
+          get_ip()
+      end
 
     :gen_udp.close(socket)
     ip

@@ -23,13 +23,15 @@ defmodule OrderAssigner do
       |> List.first()
 
     IO.inspect([order, lowest_cost], label: "Assigning order")
+
     case lowest_cost do
       {best_elevator, _cost} ->
         order
         |> Map.put(:owner, best_elevator)
         |> OrderDistributor.distribute_new()
 
-      nil -> :ok
+      nil ->
+        :ok
     end
   end
 
@@ -49,12 +51,14 @@ defmodule OrderAssigner do
 
   # Helper functions ------------------------------------
   def all_costs(%Order{} = order) do
-    {costs, _bad_nodes} = GenServer.multi_call(
-      [Node.self() | Node.list()],
-      @name,
-      {:get_cost, order},
-      @call_timeout
-    )
+    {costs, _bad_nodes} =
+      GenServer.multi_call(
+        [Node.self() | Node.list()],
+        @name,
+        {:get_cost, order},
+        @call_timeout
+      )
+
     costs
   end
 
@@ -62,7 +66,6 @@ defmodule OrderAssigner do
     list -- [{node, list[node]}]
   end
 end
-
 
 defmodule OrderAssigner.CostCalculation do
   def cost(%Order{} = order, floor, direction, orders) do

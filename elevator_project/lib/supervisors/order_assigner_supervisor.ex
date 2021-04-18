@@ -1,5 +1,5 @@
 defmodule OrderAssigner.Supervisor do
-      use Supervisor
+  use Supervisor
 
   def start_link(_init_arg) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)

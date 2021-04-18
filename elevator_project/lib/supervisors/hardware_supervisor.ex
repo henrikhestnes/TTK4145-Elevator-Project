@@ -7,11 +7,14 @@ defmodule HardwareSupervisor do
 
   @impl true
   def init([number_of_floors, driver_port]) do
-    :os.cmd('gnome-terminal -x ~/SimElevatorServer --port #{driver_port} --numfloors #{number_of_floors}')
+    :os.cmd(
+      'gnome-terminal -x ~/SimElevatorServer --port #{driver_port} --numfloors #{number_of_floors}'
+    )
+
     Process.sleep(100)
 
     children = [
-      {Driver, [{127,0,0,1}, driver_port]},
+      {Driver, [{127, 0, 0, 1}, driver_port]},
       {OrderButtonPoller.Supervisor, number_of_floors},
       ElevatorOperator,
       ObstructionPoller,

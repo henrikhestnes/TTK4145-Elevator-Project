@@ -1,4 +1,3 @@
-
 defmodule OrderDistributor do
   use GenServer
 
@@ -48,19 +47,23 @@ defmodule OrderDistributor do
   @impl true
   def handle_call({:new_order, %Order{button_type: :cab} = order}, _from, state) do
     Orders.new(order)
+
     if order.owner == Node.self() do
       ElevatorOperator.order_button_press(order)
       Driver.set_order_button_light(order.button_type, order.floor, :on)
     end
+
     {:reply, :ok, state}
   end
 
   @impl true
   def handle_call({:new_order, %Order{button_type: _hall} = order}, _from, state) do
     Orders.new(order)
+
     if order.owner == Node.self() do
       ElevatorOperator.order_button_press(order)
     end
+
     Watchdog.start(order)
     Driver.set_order_button_light(order.button_type, order.floor, :on)
     {:reply, :ok, state}
@@ -69,9 +72,11 @@ defmodule OrderDistributor do
   @impl true
   def handle_call({:delete_order, %Order{button_type: :cab} = order}, _from, state) do
     Orders.delete(order)
+
     if order.owner == Node.self() do
       Driver.set_order_button_light(order.button_type, order.floor, :off)
     end
+
     {:reply, :ok, state}
   end
 
@@ -90,12 +95,14 @@ defmodule OrderDistributor do
 
   # Helper functions ------------------------------------
   defp all_orders() do
-    {all_orders, _bad_nodes} = GenServer.multi_call(
-      [Node.self() | Node.list()],
-      @name,
-      :get_orders,
-      @call_timeout
-    )
+    {all_orders, _bad_nodes} =
+      GenServer.multi_call(
+        [Node.self() | Node.list()],
+        @name,
+        :get_orders,
+        @call_timeout
+      )
+
     Enum.map(all_orders, fn {_node, orders} -> orders end)
   end
 

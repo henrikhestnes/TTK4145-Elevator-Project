@@ -14,7 +14,7 @@ defmodule ElevatorProject.Supervisor do
       {Network.Supervisor, node_name},
       {HardwareSupervisor, [@number_of_floors, driver_port]},
       OrderDistributor.Supervisor,
-      OrderAssigner.Supervisor,
+      OrderAssigner.Supervisor
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

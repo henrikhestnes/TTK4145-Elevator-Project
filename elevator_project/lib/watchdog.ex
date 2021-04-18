@@ -30,12 +30,15 @@ defmodule Watchdog do
       Process.cancel_timer(timer_ref)
     end
 
-    timer_ref = Process.send_after(
-      self(),
-      {:expired_order, order},
-      @watchdog_timeout
-    )
-    {:noreply, active_timers |> Map.put({order.button_type, order.floor}, {timer_ref, order.owner})}
+    timer_ref =
+      Process.send_after(
+        self(),
+        {:expired_order, order},
+        @watchdog_timeout
+      )
+
+    {:noreply,
+     active_timers |> Map.put({order.button_type, order.floor}, {timer_ref, order.owner})}
   end
 
   @impl true
