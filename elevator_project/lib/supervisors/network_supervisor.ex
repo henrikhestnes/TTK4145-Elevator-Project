@@ -1,11 +1,11 @@
 defmodule Network.Supervisor do
+  use Supervisor
+
   @cookie :heisbois
   @send_port 6000
   @receive_port 8000
   @receive_timeout 100
-  @sleep_duration 50
-
-  use Supervisor
+  @broadcast_sleep_duration 50
 
   def start_link(node_name) do
     Supervisor.start_link(__MODULE__, node_name, name: __MODULE__)
@@ -41,7 +41,7 @@ defmodule Network.Supervisor do
 
         {:error, _reason} ->
           :gen_udp.close(socket)
-          Process.sleep(@sleep_duration)
+          Process.sleep(@broadcast_sleep_duration)
           get_ip()
       end
 

@@ -32,18 +32,18 @@ defmodule OrderButtonPoller.Supervisor do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  def all_buttons(number_of_floors) do
+  defp all_buttons(number_of_floors) do
     upper_floor = number_of_floors - 1
 
     @button_types
-    |> Enum.map(fn type ->
-      case type do
-        :cab -> 0..upper_floor
-        :hall_down -> 1..upper_floor
-        :hall_up -> 0..(upper_floor - 1)
-      end
-      |> Enum.map(fn floor -> %{floor: floor, type: type} end)
-    end)
+    |> Enum.map(fn button_type ->
+        case button_type do
+          :cab       -> 0..upper_floor
+          :hall_down -> 1..upper_floor
+          :hall_up   -> 0..(upper_floor - 1)
+        end
+        |> Enum.map(fn floor -> %{floor: floor, type: button_type} end)
+      end)
     |> List.flatten()
   end
 end

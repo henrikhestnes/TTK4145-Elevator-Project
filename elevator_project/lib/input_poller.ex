@@ -1,7 +1,7 @@
 defmodule ObstructionPoller do
-  @poller_sleep_ms 100
-
   use Task
+
+  @poller_sleep_duration 100
 
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:inactive])
@@ -16,15 +16,15 @@ defmodule ObstructionPoller do
       _ -> :ok
     end
 
-    Process.sleep(@poller_sleep_ms)
+    Process.sleep(@poller_sleep_duration)
     poller(current_state)
   end
 end
 
 defmodule FloorPoller do
-  @poller_sleep_ms 100
-
   use Task
+
+  @poller_sleep_duration 100
 
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:between_floors])
@@ -37,15 +37,15 @@ defmodule FloorPoller do
       ElevatorOperator.floor_arrival(current_state)
     end
 
-    Process.sleep(@poller_sleep_ms)
+    Process.sleep(@poller_sleep_duration)
     poller(current_state)
   end
 end
 
 defmodule OrderButtonPoller do
-  @poller_sleep_ms 100
-
   use Task
+
+  @poller_sleep_duration 100
 
   def start_link(floor, button_type) do
     Task.start_link(__MODULE__, :poller, [floor, button_type, :released])
@@ -58,7 +58,7 @@ defmodule OrderButtonPoller do
       OrderAssigner.assign_order(Order.new(button_type, floor))
     end
 
-    Process.sleep(@poller_sleep_ms)
+    Process.sleep(@poller_sleep_duration)
     poller(floor, button_type, current_state)
   end
 end

@@ -37,8 +37,7 @@ defmodule Watchdog do
         @watchdog_timeout
       )
 
-    {:noreply,
-     active_timers |> Map.put({order.button_type, order.floor}, {timer_ref, order.owner})}
+    {:noreply, Map.put(active_timers, {order.button_type, order.floor}, {timer_ref, order.owner})}
   end
 
   @impl true
@@ -47,7 +46,7 @@ defmodule Watchdog do
       IO.inspect(order, label: "Stopping timer")
       {timer_ref, _node} = active_timers[{order.button_type, order.floor}]
       Process.cancel_timer(timer_ref)
-      {:noreply, active_timers |> Map.delete({order.button_type, order.floor})}
+      {:noreply, Map.delete(active_timers, {order.button_type, order.floor})}
     else
       {:noreply, active_timers}
     end
@@ -58,7 +57,7 @@ defmodule Watchdog do
     if active_timers[{order.button_type, order.floor}] do
       IO.inspect(order, label: "Reinjecting order")
       OrderAssigner.assign_order(order)
-      {:noreply, active_timers |> Map.delete({order.button_type, order.floor})}
+      {:noreply, Map.delete(active_timers, {order.button_type, order.floor})}
     else
       {:noreply, active_timers}
     end

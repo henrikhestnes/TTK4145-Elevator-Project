@@ -1,18 +1,17 @@
 defmodule OrderDistributor do
   use GenServer
 
-  @name :order_distributor
   @call_timeout 5_000
 
   def start_link(_init_arg) do
-    GenServer.start_link(__MODULE__, [], name: @name)
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   # API ------------------------------------------------
   def distribute_new(%Order{} = order) do
     GenServer.multi_call(
       [Node.self() | Node.list()],
-      @name,
+      __MODULE__,
       {:new_order, order},
       @call_timeout
     )
@@ -21,7 +20,7 @@ defmodule OrderDistributor do
   def distribute_completed(%Order{} = order) do
     GenServer.multi_call(
       [Node.self() | Node.list()],
-      @name,
+      __MODULE__,
       {:delete_order, order},
       @call_timeout
     )
@@ -43,7 +42,7 @@ defmodule OrderDistributor do
     {:ok, []}
   end
 
-  # Calls -----------------------------------------------
+  # Callbacks -------------------------------------------
   @impl true
   def handle_call({:new_order, %Order{button_type: :cab} = order}, _from, state) do
     Orders.new(order)
@@ -98,7 +97,7 @@ defmodule OrderDistributor do
     {all_orders, _bad_nodes} =
       GenServer.multi_call(
         [Node.self() | Node.list()],
-        @name,
+        __MODULE__,
         :get_orders,
         @call_timeout
       )

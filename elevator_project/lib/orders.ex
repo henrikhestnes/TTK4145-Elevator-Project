@@ -1,5 +1,6 @@
 defmodule Order do
   @valid_orders [:cab, :hall_down, :hall_up]
+
   @enforce_keys [:button_type, :floor]
   defstruct [:button_type, :floor, :owner]
 
@@ -19,7 +20,7 @@ defmodule Orders do
     Agent.start_link(fn -> MapSet.new() end, name: __MODULE__)
   end
 
-  # API -----------------------------------------------
+  # API -------------------------------------------------
   def new(%Order{} = order) do
     Agent.update(__MODULE__, fn orders -> MapSet.put(orders, order) end)
   end
@@ -36,7 +37,7 @@ defmodule Orders do
     Agent.cast(__MODULE__, fn _old_orders -> orders end)
   end
 
-  # Helper functions ----------------------------------
+  # Helper functions ------------------------------------
   defp remove(orders, %Order{button_type: :cab} = order) do
     MapSet.delete(orders, order)
   end

@@ -1,7 +1,7 @@
 defmodule Network.Listen do
-  @max_connect_attempts 10
-
   use Task
+
+  @max_connect_attempts 10
 
   def start_link(recv_port) do
     Task.start_link(__MODULE__, :init, [recv_port])
@@ -27,7 +27,6 @@ defmodule Network.Listen do
   end
 
   def connect_to(node_name, attempt \\ 0)
-
   def connect_to(node_name, attempt) when attempt < @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
       :pang ->
@@ -48,10 +47,10 @@ defmodule Network.Listen do
 end
 
 defmodule Network.Broadcast do
-  @wait_duration 500
-  @send_port 0
-
   use Task
+
+  @broadcast_sleep_duration 500
+  @send_port 0
 
   def start_link(recv_port) do
     Task.start_link(__MODULE__, :init, [recv_port])
@@ -67,15 +66,15 @@ defmodule Network.Broadcast do
 
   def broadcast(socket, recv_port) do
     :gen_udp.send(socket, {255, 255, 255, 255}, recv_port, to_string(Node.self()))
-    Process.sleep(@wait_duration)
+    Process.sleep(@broadcast_sleep_duration)
     broadcast(socket, recv_port)
   end
 end
 
 defmodule Network.ConnectionCheck do
-  @check_sleep_ms 100
-
   use Task
+
+  @check_sleep_duration 100
 
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :check_connection, [[]])
@@ -88,7 +87,7 @@ defmodule Network.ConnectionCheck do
       OrderDistributor.request_backup()
     end
 
-    Process.sleep(@check_sleep_ms)
+    Process.sleep(@check_sleep_duration)
     check_connection(current_connected_nodes)
   end
 end

@@ -1,11 +1,10 @@
 defmodule OrderAssigner do
   use GenServer
 
-  @name :order_assigner
   @call_timeout 5_000
 
   def start_link(_init_arg) do
-    GenServer.start_link(__MODULE__, [], name: @name)
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   # API -------------------------------------------------
@@ -41,7 +40,7 @@ defmodule OrderAssigner do
     {:ok, []}
   end
 
-  # Calls -----------------------------------------------
+  # Callbacks -------------------------------------------
   @impl true
   def handle_call({:get_cost, %Order{} = order}, _from, state) do
     {floor, direction, _state, orders} = ElevatorOperator.get_data()
@@ -50,11 +49,11 @@ defmodule OrderAssigner do
   end
 
   # Helper functions ------------------------------------
-  def all_costs(%Order{} = order) do
+  defp all_costs(%Order{} = order) do
     {costs, _bad_nodes} =
       GenServer.multi_call(
         [Node.self() | Node.list()],
-        @name,
+        __MODULE__,
         {:get_cost, order},
         @call_timeout
       )
@@ -68,6 +67,7 @@ defmodule OrderAssigner do
 end
 
 defmodule OrderAssigner.CostCalculation do
+  # API -------------------------------------------------
   def cost(%Order{} = order, floor, direction, orders) do
     cond do
       direction == :down and order.floor > floor ->
@@ -81,6 +81,7 @@ defmodule OrderAssigner.CostCalculation do
     end
   end
 
+  # Helper functions ------------------------------------
   defp max_floor(orders) do
     orders
     |> Enum.map(fn %Order{} = order -> order.floor end)

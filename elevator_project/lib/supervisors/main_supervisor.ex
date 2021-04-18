@@ -1,8 +1,8 @@
 defmodule ElevatorProject.Supervisor do
+  use Supervisor
+
   @number_of_floors 8
   @node_name "heis"
-
-  use Supervisor
 
   def start_link(node_name, driver_port) do
     Supervisor.start_link(__MODULE__, [node_name, driver_port], name: __MODULE__)

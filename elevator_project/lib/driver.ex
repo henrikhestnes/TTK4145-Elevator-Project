@@ -1,6 +1,7 @@
 defmodule Driver do
   use GenServer
-  @call_timeout 1000
+
+  @call_timeout 1_000
   @button_map %{:hall_up => 0, :hall_down => 1, :cab => 2}
   @state_map %{:on => 1, :off => 0}
   @direction_map %{:up => 1, :down => 255, :stop => 0}
@@ -13,7 +14,7 @@ defmodule Driver do
     GenServer.start_link(__MODULE__, [address, port], name: __MODULE__)
   end
 
-  def stop do
+  def stop() do
     GenServer.stop(__MODULE__)
   end
 
@@ -22,7 +23,7 @@ defmodule Driver do
     {:ok, socket}
   end
 
-  # User API ----------------------------------------------
+  # User API --------------------------------------------
   # direction can be :up/:down/:stop
   def set_motor_direction(direction) do
     GenServer.cast(__MODULE__, {:set_motor_direction, direction})
