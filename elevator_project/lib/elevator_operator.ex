@@ -23,7 +23,7 @@ defmodule ElevatorOperator do
     GenStateMachine.cast(__MODULE__, {:obstruction_sensor_update, is_obstructed})
   end
 
-  def get_data do
+  def get_data() do
     GenStateMachine.call(__MODULE__, :get_data)
   end
 
@@ -131,12 +131,7 @@ defmodule ElevatorOperator do
   end
 
   # Obstruction switch callbacks ------------------------
-  def handle_event(
-        :cast,
-        {:obstruction_sensor_update, is_obstructed},
-        :door_open,
-        %Elevator{} = e
-      ) do
+  def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, :door_open, %Elevator{} = e) do
     updated_e = %{e | is_obstructed: is_obstructed}
 
     if is_obstructed do

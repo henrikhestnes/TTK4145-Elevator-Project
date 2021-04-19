@@ -44,9 +44,7 @@ defmodule Orders do
 
   defp remove(orders, %Order{button_type: _hall} = order) do
     orders
-    |> Enum.filter(fn %Order{} = o ->
-      {o.button_type, o.floor} != {order.button_type, order.floor}
-    end)
+    |> Enum.filter(fn %Order{} = o -> {o.button_type, o.floor} != {order.button_type, order.floor} end)
     |> MapSet.new()
   end
 end
