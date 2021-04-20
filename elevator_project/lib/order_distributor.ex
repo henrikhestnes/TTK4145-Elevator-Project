@@ -12,7 +12,7 @@ defmodule OrderDistributor do
   """
   use GenServer
 
-  @call_timeout 4_000
+  @call_timeout 5_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -29,11 +29,14 @@ defmodule OrderDistributor do
     - :ok
   """
   def distribute_new(%Order{} = order) do
-    GenServer.multi_call(
-      [Node.self() | Node.list()],
-      __MODULE__,
-      {:new_order, order},
-      @call_timeout
+    spawn(fn ->
+      GenServer.multi_call(
+        [Node.self() | Node.list()],
+        __MODULE__,
+        {:new_order, order},
+        @call_timeout
+      )
+      end
     )
   end
 
@@ -45,11 +48,14 @@ defmodule OrderDistributor do
     - :ok :: atom()
   """
   def distribute_completed(%Order{} = order) do
+    spawn(fn ->
     GenServer.multi_call(
-      [Node.self() | Node.list()],
-      __MODULE__,
-      {:delete_order, order},
-      @call_timeout
+        [Node.self() | Node.list()],
+        __MODULE__,
+        {:delete_order, order},
+        @call_timeout
+      )
+      end
     )
   end
 
