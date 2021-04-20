@@ -1,10 +1,10 @@
 defmodule OrderAssigner do
   @moduledoc """
-  Assigning orders to the best suited elevator.
+  Assigns orders to the best suited elevator.
+
   Uses the following modules:
   - `Order`
   - `OrderDistributor`
-  - `ElevatorOperator`
   - `OrderAssigner.CostCalculation`
   """
 
@@ -18,10 +18,12 @@ defmodule OrderAssigner do
 
   # API -------------------------------------------------
   @doc """
-  ´assign_order/1´ assigns an order to the best suited elevator. If order gets redristibuted, the same
-  elevator will not get the same order twice.
+  Assigns an order to the best suited elevator. Unless the elevator
+  is running without being connected to the node cluster, the same
+  elevator will not get the same order twice in a row. Calls
+  `OrderDistributor.distribute_new/1` after the order is assigned.
   ## Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - order: Order to be assgined :: %Order{}
   ## Return
     - :ok :: atom()
   """
@@ -62,8 +64,7 @@ defmodule OrderAssigner do
   # Callbacks -------------------------------------------
   @impl true
   def handle_call({:get_cost, %Order{} = order}, _from, state) do
-    {floor, direction, _state, orders} = ElevatorOperator.get_data()
-    cost = OrderAssigner.CostCalculation.cost(order, floor, direction, orders)
+    cost = OrderAssigner.CostCalculation.cost(order)
     {:reply, cost, state}
   end
 
@@ -87,24 +88,26 @@ end
 
 defmodule OrderAssigner.CostCalculation do
   @moduledoc """
-  Calculating the cost for an elevator to take a given order.
-  Uses the following module:
+  Calculates the cost for the elevator to take a given order, based on
+  the current state of the elevator.
+
+  Uses the following modules:
   - `Order`
+  - `ElevatorOperator`
   """
 
   @doc """
-  Calculating cost for the elevator to take the given order, based on the
-  current state of the elevator
+  Calls `ElevatorOperator.get_data/0` to retrieve the current state of the
+  elevator, and calculates the cost of taking the order.
   ## Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
-    - floor: Current floor of the elevator :: integer()
-    - direction: Current direction of the elevator, must be :up, :down or :stop :: atom()
-    - orders: Map of current assigned order to the elevator :: map()
+    - order: Order to be calculated cost for :: %Order{}
   ## Return
     - cost :: integer()
   """
   # API -------------------------------------------------
-  def cost(%Order{} = order, floor, direction, orders) do
+  def cost(%Order{} = order) do
+    {floor, direction, _state, orders} = ElevatorOperator.get_data()
+
     cond do
       direction == :down and order.floor > floor ->
         length(orders) + (floor - min_floor(orders)) + (order.floor - min_floor(orders))

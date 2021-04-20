@@ -24,6 +24,10 @@ defmodule ElevatorOperator do
   # API -------------------------------------------------
   @doc """
   Signals the push of an order button.
+  ## Parameters
+    - order: Order corresponding to pressed order button :: %Order{}
+  ## Return
+    - no_return
   """
   def order_button_press(%Order{} = order) do
     GenStateMachine.cast(__MODULE__, {:request_button_press, order})
@@ -31,6 +35,10 @@ defmodule ElevatorOperator do
 
   @doc """
   Signals that the elevator has arrived at a floor.
+  ## Parameters
+    - floor: The floor the elevator has arrived at :: integer()
+  ## Return
+    - no_return
   """
   def floor_arrival(floor) do
     GenStateMachine.cast(__MODULE__, {:floor_arrival, floor})
@@ -38,6 +46,8 @@ defmodule ElevatorOperator do
 
   @doc """
   Signals that the state of the obstruction switch has changed.
+  ## Return
+    - no_return
   """
   def obstruction(is_obstructed) do
     GenStateMachine.cast(__MODULE__, {:obstruction_sensor_update, is_obstructed})
@@ -46,6 +56,8 @@ defmodule ElevatorOperator do
   @doc """
   Signals that the door timer has been started or stopped,
   and changes the timer reference.
+  ## Return
+    - no_return
   """
   def timer_update(timer_ref) do
     GenStateMachine.cast(__MODULE__, {:timer_update, timer_ref})
@@ -54,7 +66,8 @@ defmodule ElevatorOperator do
   @doc """
   Returns the current state of the elevator.
   ## Return
-  {floor, direction, state, orders} :: {int(), atom(), atom(), %MapSet}
+  - Current state of the elevator, tuple of form
+  {floor, direction, state, orders} :: {integer(), atom(), atom(), %MapSet}
   """
   def get_data() do
     GenStateMachine.call(__MODULE__, :get_data)

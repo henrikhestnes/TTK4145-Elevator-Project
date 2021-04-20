@@ -16,7 +16,7 @@ defmodule Network.Listen do
   ## Parameters
     - recv_port: Port number :: integer()
   ## Return
-    - :ok :: atom()
+    - no_return
   """
   def init(recv_port) do
     {:ok, socket} =
@@ -77,6 +77,8 @@ defmodule Network.Broadcast do
   `Network.Listen` is listening on.
   ## Parameters
     - recv_port: Port number `Network.Listen` is listening on :: integer()
+  ## Return
+    - no_return
   """
   def init(recv_port) do
     {:ok, socket} =
@@ -115,6 +117,8 @@ defmodule Network.ConnectionCheck do
   ´OrderDistributor.request_backup/0´.
   ## Parameters
     - prev_connected_nodes: list of the previously connected nodes :: list()
+  ## Return
+    - no_return
   """
   def check_connection(prev_connected_nodes) do
     current_connected_nodes = Node.list()

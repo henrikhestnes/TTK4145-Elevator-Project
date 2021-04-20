@@ -1,14 +1,20 @@
 defmodule OrderDistributor do
   @moduledoc """
-  Distributing orders to the best suited elevator.
-  Tells `OrderBackup` to add order, `Watchdog` to start watchdog timer,
-  `ElevatorOperator` to take the order if it is assigned and `Driver` to set lights.
+  Distributes assigned and completed orders to all elevators in the node cluster.
+  Can also request backup from other elevators in the node cluster, and update
+  `Orders` accordingly. Upon reception of assigned orders the orders are added to `Orders`,
+  `ElevatorOperator` is singalled to take the orders if it is the assigned elevator,
+  watchdog timers are started for hall calls, and order button lights are set.
+  Upon reception of completed orders the orders are removed from `Orders`,
+  watchdog timers are stopped for hall calls, and order button lights are cleared.
+
+
   Uses the following modules:
-  - `OrderBackup`
+  - `Order`
+  - `Orders`
   - `Watchdog`
   - `ElevatorOperator`
   - `Driver`
-  - `Order`
   """
   use GenServer
 
@@ -21,12 +27,11 @@ defmodule OrderDistributor do
 
   # API ------------------------------------------------
   @doc """
-  Distributes given order to best suited elevator, and tells the other elevators
-  that a order is distributed to a given elevator. Spawning a multi_call for each new
-  distribution effectively becomes a multi_cast with acknowledge and a given timeout.
+  Distributes a given order to all elevators in the node cluster. Spawning a multi_call
+  effectively becomes a multi_cast with an acknowledgement and a given timeout.
   ## Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
-    - best_elevator: Elevator selected to serve the order :: atom()
+    - order: Order to be distributed as new :: %Order{}
+    - best_elevator: Elevator to serve the order :: atom()
   ## Return
     - :ok :: atom()
   """
@@ -43,10 +48,10 @@ defmodule OrderDistributor do
   end
 
   @doc """
-  Tells all elevator that given order(s) is completed. Spawning a multi_call for each completed
-  distribution effectively becomes a multi_cast with acknowledge and a given timeout.
+  Signals to all elevators in the node cluster that the given order has been completed.
+  Spawning a multi_call effectively becomes a multi_cast with acknowledge and a given timeout.
   ## Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - order: Order to be distributed as completed :: %Order{}
   ## Return
     - :ok :: atom()
   """
@@ -67,8 +72,10 @@ defmodule OrderDistributor do
   end
 
   @doc """
-  Requests backups for all other elevators, and merges these
-  backups together with its own.
+  Requests backups for all other elevators in the node cluster, and merges these
+  backups together with its own. All orders for which the elevator is assigned are
+  signalled to `ElevatorOperator`, watchdog timers are started for hall calls,
+  and order button lights are set for all orders in the merged backup.
   ## Return
     - :ok :: atom()
   """

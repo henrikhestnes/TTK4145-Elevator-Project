@@ -1,10 +1,12 @@
 defmodule Watchdog do
   @moduledoc """
-  Starts a watchdog for every new hall order distributed, and stops it when the order is completed.
-  If a watchdog timer runs out, the corresponding hall order gets redistributed to another elevator.
+  If a watchdog timer is started for an order and not stopped before the timeout,
+  the corresponding order gets reinjected into the system by calling `OrderAssigner.assign_order/1.
+  Keeps track of all active timers through a map from button type and floor to the timer reference.
+
   Uses the following modules:
-  - `OrderAssigner`
   - `Order`
+  - `OrderAssigner`
   """
 
   use GenServer
@@ -17,9 +19,9 @@ defmodule Watchdog do
 
   # API -------------------------------------------------
   @doc """
-  Casting to the module that a new watchdog should be started, and which elevator serving the order.
+  Starts a watchdog timer for the given order.
   ##  Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - order: Order to start watchdog timer for :: %Order{}
   ## Return
     - :ok :: atom()
   """
@@ -28,9 +30,9 @@ defmodule Watchdog do
   end
 
   @doc """
-  Casting to the module that the watchdog on the order parameter should be stopped.
+  Stops the watchdog timer for the given order
   ## Parameters
-    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - order: Order to stop watchdog timer for :: %Order{}
   ## Return
     - :ok :: atom()
   """
@@ -65,7 +67,6 @@ defmodule Watchdog do
   @impl true
   def handle_cast({:stop_timer, %Order{} = order}, active_timers) do
     if active_timers[{order.button_type, order.floor}] do
-      IO.inspect(order, label: "Stopping timer")
       {timer_ref, _node} = active_timers[{order.button_type, order.floor}]
       Process.cancel_timer(timer_ref)
       {:noreply, Map.delete(active_timers, {order.button_type, order.floor})}
@@ -77,7 +78,6 @@ defmodule Watchdog do
   @impl true
   def handle_info({:expired_order, %Order{} = order}, active_timers) do
     if active_timers[{order.button_type, order.floor}] do
-      IO.inspect(order, label: "Reinjecting order")
       OrderAssigner.assign_order(order)
       {:noreply, Map.delete(active_timers, {order.button_type, order.floor})}
     else
