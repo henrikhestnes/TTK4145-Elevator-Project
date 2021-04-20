@@ -253,7 +253,9 @@ defmodule ElevatorOperator.DoorTimer do
   end
 
   def stop(%Elevator{} = e) do
-    Process.cancel_timer(e.timer_ref)
+    if e.timer_ref do
+      Process.cancel_timer(e.timer_ref)
+    end
     Elevator.timer_update(nil)
   end
 end
