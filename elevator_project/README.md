@@ -20,13 +20,12 @@ The system is divided into the following modules:
     - `Network.ConnectionCheck` for checking if the node is connected to the cluster, and requesting backup whenever it becomes connected.
 - `Orders` for keeping track of all orders in the cluster.
 - `OrderAssigner` for deciding which elevator is best fit to handle an incoming order.
-- `OrderDistributor` for distributing new assignments and handling of orders to the rest of the cluster.
+- `OrderDistributor` for distributing new assignments and comleted handling of orders to the rest of the cluster.
 - `Watchdog` for reinjecting orders if they are not handled within a set amount of time.
 - `Driver` for communicating with the elevator hardware.
 - `InputPoller` for polling the various hardware sensors.
 
 Additionally, different modules are supervised by different Supervisors. These Supervisors are responsible for restrating modules if the terminate due to some error.
-
 
 ## Documentation
 
