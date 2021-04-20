@@ -28,7 +28,7 @@ defmodule OrderDistributor do
     - order: Order struct on the form defined in module `Order` :: %Order{}
     - best_elevator: Elevator selected to serve the order :: atom()
   ## Return
-    - :ok
+    - :ok :: atom()
   """
   def distribute_new(%Order{} = order) do
     spawn(fn ->

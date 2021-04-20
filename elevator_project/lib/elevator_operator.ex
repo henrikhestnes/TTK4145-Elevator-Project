@@ -1,6 +1,8 @@
 defmodule ElevatorOperator do
   @moduledoc """
-  State machine responible for running the elevator.
+  Finite state machine responible for running one elevator, implemented using the behaviour GenStateMachine.
+  The state machine has the states `idle`, `moving` and `door_open`, and keeps track of the current floor,
+  moving direction, obstructed sensor state and door timer.
 
   Uses the following modules:
   - `Orders`
@@ -21,26 +23,41 @@ defmodule ElevatorOperator do
 
   # API -------------------------------------------------
   @doc """
-
+  Signals the push of an order button.
   """
   def order_button_press(%Order{} = order) do
     GenStateMachine.cast(__MODULE__, {:request_button_press, order})
   end
 
+  @doc """
+  Signals that the elevator has arrived at a floor.
+  """
   def floor_arrival(floor) do
     GenStateMachine.cast(__MODULE__, {:floor_arrival, floor})
   end
 
+  @doc """
+  Signals that the state of the obstruction switch has changed.
+  """
   def obstruction(is_obstructed) do
     GenStateMachine.cast(__MODULE__, {:obstruction_sensor_update, is_obstructed})
   end
 
-  def get_data() do
-    GenStateMachine.call(__MODULE__, :get_data)
-  end
-
+  @doc """
+  Signals that the door timer has been started or stopped,
+  and changes the timer reference.
+  """
   def timer_update(timer_ref) do
     GenStateMachine.cast(__MODULE__, {:timer_update, timer_ref})
+  end
+
+  @doc """
+  Returns the current state of the elevator.
+  ## Return
+  {floor, direction, state, orders} :: {int(), atom(), atom(), %MapSet}
+  """
+  def get_data() do
+    GenStateMachine.call(__MODULE__, :get_data)
   end
 
   # Initialization and termination callbacks ------------
@@ -143,12 +160,7 @@ defmodule ElevatorOperator do
   end
 
   # Obstruction switch callbacks ------------------------
-  def handle_event(
-        :cast,
-        {:obstruction_sensor_update, is_obstructed},
-        :door_open,
-        %Elevator{} = e
-      ) do
+  def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, :door_open, %Elevator{} = e) do
     updated_e = %{e | is_obstructed: is_obstructed}
 
     if is_obstructed do
@@ -161,15 +173,6 @@ defmodule ElevatorOperator do
   end
 
   def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, _state, %Elevator{} = e) do
-    # updated_e = %{e | is_obstructed: is_obstructed}
-
-    # if is_obstructed do
-    #   ElevatorOperator.DoorTimer.stop(updated_e)
-    # else
-    #   ElevatorOperator.DoorTimer.start(updated_e)
-    # end
-
-    # {:keep_state, updated_e}
     {:keep_state, %{e | is_obstructed: is_obstructed}}
   end
 
@@ -262,10 +265,25 @@ defmodule ElevatorOperator do
 end
 
 defmodule ElevatorOperator.DoorTimer do
+   @moduledoc """
+  Finite state machine responible for running one elevator, implemented using the behaviour GenStateMachine.
+  The state machine has the states `idle`, `moving` and `door_open`, and keeps track of the current floor,
+  moving direction, obstructed sensor state and door timer.
+
+  Uses the following modules:
+  - `ElevatorOperator`
+  """
+
   alias ElevatorOperator, as: Elevator
 
   @door_timer_duration 2_000
 
+  @doc """
+  Starts the door timer if the elevator is not obstructed. Calls `ElevatorOperator.timer_update/1`
+  to update the timer reference to the newly set timer.
+  ## Parameters
+  - e: Struct containing the current state of the elevator :: %ElevatorOperator{}
+  """
   def start(%Elevator{is_obstructed: false} = e) do
     if e.timer_ref do
       Process.cancel_timer(e.timer_ref)
@@ -277,6 +295,12 @@ defmodule ElevatorOperator.DoorTimer do
   def start(%Elevator{is_obstructed: true}) do
   end
 
+  @doc """
+  Stops the door timer if it is active. Calls `ElevatorOperator.timer_update/1`
+  to update the timer reference to `nil`.
+  ## Parameters
+  - e: Struct containing the current state of the elevator :: %ElevatorOperator{}
+  """
   def stop(%Elevator{} = e) do
     if e.timer_ref do
       Process.cancel_timer(e.timer_ref)

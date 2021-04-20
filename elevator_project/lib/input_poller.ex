@@ -1,6 +1,8 @@
 defmodule ObstructionPoller do
   @moduledoc """
-  `ObstructionPoller` is used to monitor the current state of obstruction.
+  Monitors the state of the obstruction switch, and signals `ElevatorOperator` if
+  the state changes.
+
   Uses the following modules:
     - Driver
     - ElevatorOperator
@@ -14,12 +16,10 @@ defmodule ObstructionPoller do
   end
 
   @doc """
-  Updates `ElevatorOperator.obstruction/1` with the current obstruction
-  switch state.
+  Calls `ElevatorOperator.obstruction/1` with the current obstruction
+  switch state if the state changes.
   ## Parameters
-    - prev_state: can be set to :inactive/:active :: atom()
-  ## Return
-    - no_return
+    - prev_state: State of the obstruction switch sensor. Can be :inactive or :active :: atom()
   """
   def poller(prev_state) do
     current_state = Driver.get_obstruction_switch_state()
@@ -37,7 +37,9 @@ end
 
 defmodule FloorPoller do
   @moduledoc """
-  `FloorPoller` is used to monitor the current position of the elevator.
+  Monitors the state of the floor sensor, and signals `ElevatorOperator` if
+  the elevator arrives at a floor.
+
   Uses the following modules:
     - Driver
     - ElevatorOperator
@@ -51,10 +53,10 @@ defmodule FloorPoller do
   end
 
   @doc """
-  Updates `ElevatorOperator.floor_arrival/1` when the elevator is
-  arriving at a new floor
+  Calls `ElevatorOperator.floor_arrival/1` when the elevator is
+  arriving at a new floor.
   ## Parameters
-    - prev_state: Represented as floor number or :in_between_floors :: integer() | atom()
+    - prev_state: State of the floor sensor. Can be the floor number or :in_between_floors :: integer() | atom()
   """
   def poller(prev_state) do
     current_state = Driver.get_floor_sensor_state()
@@ -70,9 +72,10 @@ end
 
 defmodule OrderButtonPoller do
   @moduledoc """
-  `OrderButtonPoller` is used to monitor the current state of an
-  order button. One task is started for each button in
-  `OrderButtonPoller.Supervisor`.
+  Used to monitor the state of one order button, and signals
+  `OrderAssigner` if the button is pressed. One poller is started
+  for each button in `OrderButtonPoller.Supervisor`.
+
   Uses the following modules:
     - Driver
     - Order
@@ -87,12 +90,12 @@ defmodule OrderButtonPoller do
   end
 
   @doc """
-  `poller/3` retrieves a button state from `Driver.get_order_button_state/2`
-  and sends the corresponding order to `OrderAssigner.assign_order/1`
+  Retrieves the state of an order button. Uses `OrderAssigner.assign_order/1`
+  to signals assignment of the order if the button is pressed.
   ## Parameters
-    - floor: Current floor of the elevator :: integer()
-    - button_type: Button of type :cab, :hall_up or :hall_down :: atom()
-    - prev_state: Informes if the button is pressed :: boolean()
+    - floor: Floor of the order button :: integer()
+    - button_type: Button type of the order button. Can be :cab, :hall_up or :hall_down :: atom()
+    - prev_state: State of the order button. Can be 0 or 1 :: boolean()
   """
   def poller(floor, button_type, prev_state) do
     current_state = Driver.get_order_button_state(floor, button_type)

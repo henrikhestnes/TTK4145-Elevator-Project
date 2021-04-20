@@ -1,6 +1,7 @@
 defmodule Network.Listen do
   @moduledoc """
-  `Network.Listen` is responsible for connecting new nodes to the cluster.
+  Listens for messages from other nodes, and attempts to
+  connect to the cluster upon reception.
   """
   use Task
 
@@ -59,7 +60,7 @@ end
 
 defmodule Network.Broadcast do
   @moduledoc """
-  `Network.Broadcast` is responsible for broadcasting the node name, so that
+  Broadcasts own node name, so that
   the node can be discovered by other nodes.
   """
   use Task
@@ -72,12 +73,10 @@ defmodule Network.Broadcast do
   end
 
   @doc """
-  `init/1` initializes `broadcast/2` with the correct socket and receive
-  port
+  `init/1` initializes `broadcast/2` with a socket and the port
+  `Network.Listen` is listening on.
   ## Parameters
-    - recv_port: port number :: integer()
-  ## Return
-    - no_return
+    - recv_port: Port number `Network.Listen` is listening on :: integer()
   """
   def init(recv_port) do
     {:ok, socket} =
@@ -96,7 +95,9 @@ end
 
 defmodule Network.ConnectionCheck do
   @moduledoc """
-  ´Network.ConnectionCheck´ evaluates if the node must request a backup.
+  Evaluates if the elevator must request a backup, by checking if the node
+  newly connected to the cluster.
+
   Uses the modules:
     - OrderDistributor
   """
@@ -109,13 +110,11 @@ defmodule Network.ConnectionCheck do
   end
 
   @doc """
-  Checks the connection and compare the previous list of nodes with the new ones. If
+  Checks the current list of connected nodes and compares it to the previous list of nodes. If
   the list goes from empty to not empty, the node requests a backup by calling
   ´OrderDistributor.request_backup/0´.
   ## Parameters
     - prev_connected_nodes: list of the previously connected nodes :: list()
-  ## Return
-    - no_return
   """
   def check_connection(prev_connected_nodes) do
     current_connected_nodes = Node.list()
