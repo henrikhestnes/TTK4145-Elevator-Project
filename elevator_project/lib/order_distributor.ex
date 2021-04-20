@@ -16,6 +16,7 @@ defmodule OrderDistributor do
   - `ElevatorOperator`
   - `Driver`
   """
+  
   use GenServer
 
   @distribution_call_timeout 10_000

@@ -3,6 +3,7 @@ defmodule Network.Listen do
   Listens for messages from other nodes, and attempts to
   connect to the cluster upon reception.
   """
+  
   use Task
 
   @max_connect_attempts 10
@@ -65,6 +66,7 @@ defmodule Network.Broadcast do
   Broadcasts own node name, so that
   the node can be discovered by other nodes.
   """
+
   use Task
 
   @broadcast_sleep_duration 500
@@ -107,6 +109,7 @@ defmodule Network.ConnectionCheck do
   Uses the modules:
     - OrderDistributor
   """
+
   use Task
 
   @check_sleep_duration 100

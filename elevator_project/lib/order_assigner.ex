@@ -96,6 +96,7 @@ defmodule OrderAssigner.CostCalculation do
   - `ElevatorOperator`
   """
 
+  # API -------------------------------------------------
   @doc """
   Calls `ElevatorOperator.get_data/0` to retrieve the current state of the
   elevator, and calculates the cost of taking the order.
@@ -105,7 +106,6 @@ defmodule OrderAssigner.CostCalculation do
   ## Return
     - Cost of the elevator :: integer()
   """
-  # API -------------------------------------------------
   def cost(%Order{} = order) do
     {floor, direction, _state, orders} = ElevatorOperator.get_data()
 
