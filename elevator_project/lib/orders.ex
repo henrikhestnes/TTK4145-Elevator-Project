@@ -40,14 +40,23 @@ defmodule Orders do
 
   # API -------------------------------------------------
   @doc """
-  Adds an order to the map set.
+  Adds an order to the map.
   ## Parameters
     - order: Order struct on the form defined in module `Order` :: %Order{}
+  ## Return
+    - :ok :: atom()
   """
   def new(%Order{} = order) do
     Agent.update(__MODULE__, fn orders -> MapSet.put(orders, order) end)
   end
 
+  @doc """
+  Deletes an order in the map.
+  ## Parameters
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+  ## Return
+    - :ok :: atom()
+  """
   def delete(%Order{} = order) do
     Agent.update(__MODULE__, fn orders -> remove(orders, order) end)
   end

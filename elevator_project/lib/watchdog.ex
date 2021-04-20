@@ -21,7 +21,7 @@ defmodule Watchdog do
   ##  Parameters
     - order: Order struct on the form defined in module `Order` :: %Order{}
   ## Return
-    - :ok
+    - :ok :: atom()
   """
   def start(%Order{} = order) do
     GenServer.cast(__MODULE__, {:start_timer, order})
