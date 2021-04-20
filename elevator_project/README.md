@@ -31,5 +31,4 @@ The system is divided into the following modules:
 Additionally, different modules are supervised by different Supervisors. These Supervisors are responsible for restarting modules if the terminate due to some error.The modules are documented at https://hexdocs.pm/elevator_project/0.1.0.
 
 ## Running the system
-The system can be ran thourgh the command `mix run --no-halt`. the application requires the installation of the delivered ElevatorServer.
-
+The system can be ran through the command `mix run --no-halt`. the application requires the installation of the delivered ElevatorServer.
