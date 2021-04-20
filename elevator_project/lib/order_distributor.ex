@@ -1,4 +1,15 @@
 defmodule OrderDistributor do
+  @moduledoc """
+  Distributing orders to the best suited elevator.
+  Tells `OrderBackup` to add order, `Watchdog` to start watchdog timer,
+  `ElevatorOperator` to take the order if it is assigned and `Driver` to set lights.
+  Uses the following modules:
+  - `OrderBackup`
+  - `Watchdog`
+  - `ElevatorOperator`
+  - `Driver`
+  - `Order`
+  """
   use GenServer
 
   @call_timeout 5_000
@@ -8,6 +19,15 @@ defmodule OrderDistributor do
   end
 
   # API ------------------------------------------------
+  @doc """
+  Distributes given order to best suited elevator, and tells the other elevators
+  that a order is distributed to a given elevator.
+  ## Parameters
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - best_elevator: Elevator selected to serve the order :: atom()
+  ## Return
+    - :ok
+  """
   def distribute_new(%Order{} = order) do
     spawn(fn ->
       GenServer.multi_call(
@@ -20,6 +40,13 @@ defmodule OrderDistributor do
     )
   end
 
+  @doc """
+  Tells all elevator that given order(s) is completed
+  ## Parameters
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+  ## Return
+    - :ok :: atom()
+  """
   def distribute_completed(%Order{} = order) do
     spawn(fn ->
     GenServer.multi_call(
@@ -36,6 +63,12 @@ defmodule OrderDistributor do
     Enum.each(orders, fn %Order{} = order -> distribute_completed(order) end)
   end
 
+  @doc """
+  Requests backups for all other elevators, and merges these
+  backups together with its own.
+  ## Return
+    - :ok :: atom()
+  """
   def request_backup() do
     backup = union(all_orders())
     Enum.each(backup, fn %Order{} = order -> inject_order(order) end)

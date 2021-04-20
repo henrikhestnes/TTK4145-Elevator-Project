@@ -1,4 +1,13 @@
 defmodule OrderAssigner do
+  @moduledoc """
+  Assigning orders to the best suited elevator.
+  Uses the following modules:
+  - `Order`
+  - `OrderDistributor`
+  - `ElevatorOperator`
+  - `OrderAssigner.CostCalculation`
+  """
+
   use GenServer
 
   @call_timeout 2_000
@@ -8,6 +17,14 @@ defmodule OrderAssigner do
   end
 
   # API -------------------------------------------------
+  @doc """
+  ´assign_order/1´ assigns an order to the best suited elevator. If order gets redristibuted, the same
+  elevator will not get the same order twice.
+  ## Parameters
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+  ## Return
+    - :ok :: atom()
+  """
   def assign_order(%Order{button_type: :cab} = order) do
     order
     |> Map.put(:owner, Node.self())
@@ -69,6 +86,23 @@ defmodule OrderAssigner do
 end
 
 defmodule OrderAssigner.CostCalculation do
+  @moduledoc """
+  Calculating the cost for an elevator to take a given order.
+  Uses the following module:
+  - `Order`
+  """
+
+  @doc """
+  Calculating cost for the elevator to take the given order, based on the
+  current state of the elevator
+  ## Parameters
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - floor: Current floor of the elevator :: integer()
+    - direction: Current direction of the elevator, must be :up, :down or :stop :: atom()
+    - orders: Map of current assigned order to the elevator :: map()
+  ## Return
+    - cost :: integer()
+  """
   # API -------------------------------------------------
   def cost(%Order{} = order, floor, direction, orders) do
     cond do
