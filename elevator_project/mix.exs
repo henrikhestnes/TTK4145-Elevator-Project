@@ -12,12 +12,8 @@ defmodule ElevatorProject.MixProject do
       # Documentation
       name: "ElevatorProject",
       description: "Implementation of concurrent message passing system for parallell elevators.",
-      licenses: "n/a",
-      links: "https://github.com/TTK4145-Students-2021/project-gruppe-26",
-      docs: [main: "readme",
-            homepage_url: "https://hexdocs.pm/elevator_project",
-            extras: ["README.md"]
-      ]
+      docs: docs(),
+      package: package()
     ]
   end
 
@@ -37,6 +33,21 @@ defmodule ElevatorProject.MixProject do
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      homepage_url: "https://hexdocs.pm/elevator_project",
+      extras: ["README.md"]
+    ]
+  end
+
+  defp package do
+    [
+      licenses: [],
+      links: %{"GitHub" => "https://github.com/TTK4145-Students-2021/project-gruppe-26"}
     ]
   end
 end

@@ -32,5 +32,5 @@ Additionally, different modules are supervised by different Supervisors. These S
 
 ## Documentation
 
-The modules are documented at https://hexdocs.pm/elevator_project.
+The modules are documented at https://hexdocs.pm/elevator_project/0.1.0.
 
