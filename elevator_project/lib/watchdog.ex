@@ -13,6 +13,7 @@ defmodule Watchdog do
 
   @watchdog_timeout 20_000
 
+  @doc false
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -34,7 +35,7 @@ defmodule Watchdog do
   Stops the watchdog timer for the given order
   ## Parameters
     - order: Order to stop watchdog timer for :: %Order{}
-    
+
   ## Return
     - :ok :: atom()
   """

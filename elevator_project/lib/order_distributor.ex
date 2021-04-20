@@ -21,6 +21,7 @@ defmodule OrderDistributor do
   @distribution_call_timeout 10_000
   @backup_call_timeout 5_000
 
+  @doc false
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -53,7 +54,7 @@ defmodule OrderDistributor do
   Spawning a multi_call effectively becomes a multi_cast with acknowledge and a given timeout.
   ## Parameters
     - order: Order to be distributed as completed :: %Order{}
-    
+
   ## Return
     - :ok :: atom()
   """

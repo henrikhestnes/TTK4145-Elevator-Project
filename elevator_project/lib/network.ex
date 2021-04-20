@@ -7,6 +7,7 @@ defmodule Network.Listen do
 
   @max_connect_attempts 10
 
+  @doc false
   def start_link(recv_port) do
     Task.start_link(__MODULE__, :init, [recv_port])
   end
@@ -15,7 +16,7 @@ defmodule Network.Listen do
   `init/1` opens a socket and starts listening by calling `listen/1`.
   ## Parameters
     - recv_port: Port number :: integer()
-    
+
   ## Return
     - no_return
   """
@@ -69,6 +70,7 @@ defmodule Network.Broadcast do
   @broadcast_sleep_duration 500
   @send_port 0
 
+  @doc false
   def start_link(recv_port) do
     Task.start_link(__MODULE__, :init, [recv_port])
   end
@@ -109,6 +111,7 @@ defmodule Network.ConnectionCheck do
 
   @check_sleep_duration 100
 
+  @doc false
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :check_connection, [[]])
   end

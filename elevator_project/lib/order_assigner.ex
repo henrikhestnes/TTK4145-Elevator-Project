@@ -12,6 +12,7 @@ defmodule OrderAssigner do
 
   @call_timeout 1_000
 
+  @doc false
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end

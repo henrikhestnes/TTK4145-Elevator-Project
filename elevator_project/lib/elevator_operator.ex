@@ -17,6 +17,7 @@ defmodule ElevatorOperator do
   @enforce_keys [:floor, :direction, :is_obstructed, :timer_ref]
   defstruct [:floor, :direction, :is_obstructed, :timer_ref]
 
+  @doc false
   def start_link(_init_arg) do
     GenStateMachine.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -38,7 +39,7 @@ defmodule ElevatorOperator do
   Signals that the elevator has arrived at a floor.
   ## Parameters
     - floor: The floor the elevator has arrived at :: integer()
-  
+
   ## Return
     - no_return
   """

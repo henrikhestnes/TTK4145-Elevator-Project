@@ -36,6 +36,7 @@ defmodule Orders do
   """
   use Agent
 
+  @doc false
   def start_link(_init_arg) do
     Agent.start_link(fn -> MapSet.new() end, name: __MODULE__)
   end
@@ -79,7 +80,7 @@ defmodule Orders do
   Sets the order set.
   ## Parameters
     - orders: New value of the order set :: %Order{}
-    
+
   ## Return
     - :ok :: atom()
   """

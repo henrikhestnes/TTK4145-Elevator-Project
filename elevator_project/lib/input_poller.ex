@@ -11,6 +11,7 @@ defmodule ObstructionPoller do
 
   @poller_sleep_duration 100
 
+  @doc false
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:inactive])
   end
@@ -51,6 +52,7 @@ defmodule FloorPoller do
 
   @poller_sleep_duration 100
 
+  @doc false
   def start_link(_init_arg) do
     Task.start_link(__MODULE__, :poller, [:between_floors])
   end
@@ -91,6 +93,7 @@ defmodule OrderButtonPoller do
 
   @poller_sleep_duration 100
 
+  @doc false
   def start_link(floor, button_type) do
     Task.start_link(__MODULE__, :poller, [floor, button_type, :released])
   end
@@ -102,7 +105,7 @@ defmodule OrderButtonPoller do
     - floor: Floor of the order button :: integer()
     - button_type: Button type of the order button. Can be :cab, :hall_up or :hall_down :: atom()
     - prev_state: State of the order button. Can be 0 or 1 :: boolean()
-    
+
   ## Return
     - no_return
   """
