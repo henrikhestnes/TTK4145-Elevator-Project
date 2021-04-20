@@ -1,7 +1,7 @@
 # Elevator Project - TTK4145: Real time programming
 
 ## General description
-This project is an implementation of an elevator system running `n` elevators across `m` floors, using Elixir. The implementation uses message passing, through use of the following language native OTP behaviours and modules:
+This project is an implementation of an elevator system running `n` elevators across `m` floors, using Elixir. The implementation uses message passing, through use of the following OTP behaviours and modules:
 - [GenServer](https://hexdocs.pm/elixir/GenServer.html)
 - [GenStateMachine](https://hexdocs.pm/gen_state_machine/GenStateMachine.html)
 - [Task](https://hexdocs.pm/elixir/Task.html)
@@ -25,7 +25,7 @@ The system is divided into the following modules:
 - `Driver` for communicating with the elevator hardware.
 - `InputPoller` for polling the various hardware sensors.
 
-Additionally, different modules are supervised by different Supervisors. These Supervisors are responsible for restrating modules if the terminate due to some error.
+Additionally, different modules are supervised by different Supervisors. These Supervisors are responsible for restarting modules if the terminate due to some error.
 
 ## Documentation
 
