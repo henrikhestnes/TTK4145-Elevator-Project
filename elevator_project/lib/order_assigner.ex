@@ -42,8 +42,6 @@ defmodule OrderAssigner do
       |> List.keysort(1)
       |> List.first()
 
-    IO.inspect([order, lowest_cost], label: "Assigning order")
-
     case lowest_cost do
       {best_elevator, _cost} ->
         order

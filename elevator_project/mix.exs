@@ -20,7 +20,7 @@ defmodule ElevatorProject.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {ElevatorProject.Application, []},
+      #mod: {ElevatorProject.Application, []},
       extra_applications: [:logger],
       applications: [:gen_state_machine]
     ]

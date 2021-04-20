@@ -1,0 +1,25 @@
+[1mdiff --git a/elevator_project/lib/order_assigner.ex b/elevator_project/lib/order_assigner.ex[m
+[1mindex cbf3c8b..3a24910 100644[m
+[1m--- a/elevator_project/lib/order_assigner.ex[m
+[1m+++ b/elevator_project/lib/order_assigner.ex[m
+[36m@@ -42,8 +42,6 @@[m [mdefmodule OrderAssigner do[m
+       |> List.keysort(1)[m
+       |> List.first()[m
+ [m
+[31m-    IO.inspect([order, lowest_cost], label: "Assigning order")[m
+[31m-[m
+     case lowest_cost do[m
+       {best_elevator, _cost} ->[m
+         order[m
+[1mdiff --git a/elevator_project/lib/supervisors/hardware_supervisor.ex b/elevator_project/lib/supervisors/hardware_supervisor.ex[m
+[1mindex 4aa8756..6ee7cea 100644[m
+[1m--- a/elevator_project/lib/supervisors/hardware_supervisor.ex[m
+[1m+++ b/elevator_project/lib/supervisors/hardware_supervisor.ex[m
+[36m@@ -1,6 +1,6 @@[m
+ defmodule HardwareSupervisor do[m
+   @moduledoc false[m
+[31m-  [m
+[32m+[m
+   use Supervisor[m
+ [m
+ ## FOR RUNNING THE SIMULATOR[m
