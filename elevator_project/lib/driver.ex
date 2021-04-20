@@ -1,4 +1,6 @@
 defmodule Driver do
+  @moduledoc false
+
   use GenServer
 
   @call_timeout 1_000

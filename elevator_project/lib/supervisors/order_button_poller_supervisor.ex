@@ -1,4 +1,6 @@
 defmodule OrderButtonPoller.Supervisor do
+  @moduledoc false
+  
   use Supervisor
 
   @button_types [:cab, :hall_up, :hall_down]

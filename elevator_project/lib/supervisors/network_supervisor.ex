@@ -1,4 +1,6 @@
 defmodule Network.Supervisor do
+  @moduledoc false
+  
   use Supervisor
 
   @cookie :heisbois

@@ -1,7 +1,9 @@
 defmodule ElevatorProject.Supervisor do
+  @moduledoc false
+
   use Supervisor
 
-  @number_of_floors 8
+  @number_of_floors 4
   @node_name "heis"
 
 ## FOR RUNNING THE SIMULATOR
