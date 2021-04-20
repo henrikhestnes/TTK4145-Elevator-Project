@@ -96,12 +96,12 @@ defmodule OrderAssigner.CostCalculation do
   Calculating cost for the elevator to take the given order, based on the
   current state of the elevator
   ## Parameters
-    - order: Order struct on the form defined in module `Order`
-    - floor: Current floor of the elevator, must be integer
-    - direction: Current direction of the elevator, must be :up, :down or :stop
-    - orders: Map of current assigned order to the elevator
+    - order: Order struct on the form defined in module `Order` :: %Order{}
+    - floor: Current floor of the elevator :: integer()
+    - direction: Current direction of the elevator, must be :up, :down or :stop :: atom()
+    - orders: Map of current assigned order to the elevator :: map()
   ## Return
-    - cost given as integer
+    - cost :: integer()
   """
   # API -------------------------------------------------
   def cost(%Order{} = order, floor, direction, orders) do
