@@ -29,8 +29,10 @@ defmodule OrderAssigner do
         |> Map.put(:owner, best_elevator)
         |> OrderDistributor.distribute_new()
 
-      nil ->
-        :ok
+      _no_replies ->
+        order
+        |> Map.put(:owner, Node.self())
+        |> OrderDistributor.distribute_new()
     end
   end
 
