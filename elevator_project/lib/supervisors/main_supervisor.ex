@@ -13,15 +13,15 @@ defmodule ElevatorProject.Supervisor do
   # def init([node_name, driver_port]) do
   #   children = [
   #     {Network.Supervisor, node_name},
-  #     {HardwareSupervisor, [@number_of_floors, driver_port]},
   #     OrderDistributor.Supervisor,
-  #     OrderAssigner.Supervisor
+  #     OrderAssigner.Supervisor,
+  #     {HardwareSupervisor, [@number_of_floors, driver_port]}
   #   ]
 
   #   Supervisor.init(children, strategy: :one_for_one)
   # end
 
-## FOR RUNNING THE PHYSICAL HELICOPTER
+## FOR RUNNING THE PHYSICAL ELEVATOR
   def start_link([]) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -29,10 +29,10 @@ defmodule ElevatorProject.Supervisor do
   @impl true
   def init([]) do
     children = [
-      {HardwareSupervisor, @number_of_floors},
       {Network.Supervisor, @node_name},
       OrderDistributor.Supervisor,
       OrderAssigner.Supervisor,
+      {HardwareSupervisor, @number_of_floors}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
