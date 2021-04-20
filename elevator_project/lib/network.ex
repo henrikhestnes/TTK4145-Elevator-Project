@@ -1,4 +1,7 @@
 defmodule Network.Listen do
+  @moduledoc """
+  `Network.Listen` is responsible for connecting new nodes to the cluster.
+  """
   use Task
 
   @max_connect_attempts 10
@@ -7,6 +10,13 @@ defmodule Network.Listen do
     Task.start_link(__MODULE__, :init, [recv_port])
   end
 
+  @doc """
+  `init/1` opens a socket and starts listening by calling `listen/1`.
+  ## Parameters
+    - recv_port: Port number :: integer()
+  ## Return
+    - :ok :: atom()
+  """
   def init(recv_port) do
     {:ok, socket} =
       :gen_udp.open(recv_port, [:binary, active: false, broadcast: true, reuseaddr: true])
