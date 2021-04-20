@@ -1,4 +1,13 @@
 defmodule ElevatorOperator do
+  @moduledoc """
+  State machine responible for running the elevator.
+
+  Uses the following modules:
+  - `Orders`
+  - `Driver`
+  - `OrderDistributor`
+  """
+
   use GenStateMachine
 
   alias ElevatorOperator, as: Elevator
@@ -11,6 +20,9 @@ defmodule ElevatorOperator do
   end
 
   # API -------------------------------------------------
+  @doc """
+
+  """
   def order_button_press(%Order{} = order) do
     GenStateMachine.cast(__MODULE__, {:request_button_press, order})
   end
@@ -144,6 +156,15 @@ defmodule ElevatorOperator do
   end
 
   def handle_event(:cast, {:obstruction_sensor_update, is_obstructed}, _state, %Elevator{} = e) do
+    # updated_e = %{e | is_obstructed: is_obstructed}
+
+    # if is_obstructed do
+    #   ElevatorOperator.DoorTimer.stop(updated_e)
+    # else
+    #   ElevatorOperator.DoorTimer.start(updated_e)
+    # end
+
+    # {:keep_state, updated_e}
     {:keep_state, %{e | is_obstructed: is_obstructed}}
   end
 
@@ -244,7 +265,6 @@ defmodule ElevatorOperator.DoorTimer do
     if e.timer_ref do
       Process.cancel_timer(e.timer_ref)
     end
-
     timer_ref = Process.send_after(self(), :door_timeout, @door_timer_duration)
     Elevator.timer_update(timer_ref)
   end

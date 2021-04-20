@@ -1,6 +1,6 @@
 defmodule HardwareSupervisor do
   use Supervisor
-
+## FOR RUNNING THE SIMULATOR
   def start_link([number_of_floors, driver_port]) do
     Supervisor.start_link(__MODULE__, [number_of_floors, driver_port], name: __MODULE__)
   end
@@ -23,6 +23,8 @@ defmodule HardwareSupervisor do
 
     Supervisor.init(children, strategy: :one_for_all)
   end
+
+## FOR RUNNING THE PHYSICAL ELEVATOR
 
   # def start_link(number_of_floors) do
   #   Supervisor.start_link(__MODULE__, number_of_floors, name: __MODULE__)

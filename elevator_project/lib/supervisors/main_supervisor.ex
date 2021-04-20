@@ -4,6 +4,7 @@ defmodule ElevatorProject.Supervisor do
   @number_of_floors 8
   @node_name "heis"
 
+## FOR RUNNING THE SIMULATOR
   def start_link(node_name, driver_port) do
     Supervisor.start_link(__MODULE__, [node_name, driver_port], name: __MODULE__)
   end
@@ -19,6 +20,8 @@ defmodule ElevatorProject.Supervisor do
 
     Supervisor.init(children, strategy: :one_for_one)
   end
+
+## FOR RUNNING THE PHYSICAL HELICOPTER
 
   # def start_link([]) do
   #   Supervisor.start_link(__MODULE__, [], name: __MODULE__)
