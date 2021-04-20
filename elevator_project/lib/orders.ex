@@ -45,6 +45,7 @@ defmodule Orders do
   Adds an order to the set.
   ## Parameters
     - order: Order to be added :: %Order{}
+
   ## Return
     - :ok :: atom()
   """
@@ -57,6 +58,7 @@ defmodule Orders do
   all orders with the given button type and floor are deleted from the set.
   ## Parameters
     - order: Order to be deleted :: %Order{}
+
   ## Return
     - :ok :: atom()
   """
@@ -77,6 +79,7 @@ defmodule Orders do
   Sets the order set.
   ## Parameters
     - orders: New value of the order set :: %Order{}
+    
   ## Return
     - :ok :: atom()
   """

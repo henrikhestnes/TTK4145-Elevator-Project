@@ -24,6 +24,7 @@ defmodule OrderAssigner do
   `OrderDistributor.distribute_new/1` after the order is assigned.
   ## Parameters
     - order: Order to be assgined :: %Order{}
+
   ## Return
     - :ok :: atom()
   """
@@ -101,8 +102,9 @@ defmodule OrderAssigner.CostCalculation do
   elevator, and calculates the cost of taking the order.
   ## Parameters
     - order: Order to be calculated cost for :: %Order{}
+
   ## Return
-    - cost :: integer()
+    - Cost of the elevator :: integer()
   """
   # API -------------------------------------------------
   def cost(%Order{} = order) do

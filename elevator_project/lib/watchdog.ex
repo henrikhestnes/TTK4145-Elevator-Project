@@ -1,7 +1,7 @@
 defmodule Watchdog do
   @moduledoc """
   If a watchdog timer is started for an order and not stopped before the timeout,
-  the corresponding order gets reinjected into the system by calling `OrderAssigner.assign_order/1.
+  the corresponding order gets reinjected into the system by calling `OrderAssigner.assign_order/1`.
   Keeps track of all active timers through a map from button type and floor to the timer reference.
 
   Uses the following modules:
@@ -22,6 +22,7 @@ defmodule Watchdog do
   Starts a watchdog timer for the given order.
   ##  Parameters
     - order: Order to start watchdog timer for :: %Order{}
+
   ## Return
     - :ok :: atom()
   """
@@ -33,6 +34,7 @@ defmodule Watchdog do
   Stops the watchdog timer for the given order
   ## Parameters
     - order: Order to stop watchdog timer for :: %Order{}
+    
   ## Return
     - :ok :: atom()
   """

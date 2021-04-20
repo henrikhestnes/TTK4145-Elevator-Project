@@ -20,6 +20,7 @@ defmodule ObstructionPoller do
   switch state if the state changes.
   ## Parameters
     - prev_state: State of the obstruction switch sensor. Can be :inactive or :active :: atom()
+
   ## Return
     - no_return
   """
@@ -59,6 +60,7 @@ defmodule FloorPoller do
   arriving at a new floor.
   ## Parameters
     - prev_state: State of the floor sensor. Can be the floor number or :in_between_floors :: integer() | atom()
+
   ## Return
     - no_return
   """
@@ -100,6 +102,7 @@ defmodule OrderButtonPoller do
     - floor: Floor of the order button :: integer()
     - button_type: Button type of the order button. Can be :cab, :hall_up or :hall_down :: atom()
     - prev_state: State of the order button. Can be 0 or 1 :: boolean()
+    
   ## Return
     - no_return
   """

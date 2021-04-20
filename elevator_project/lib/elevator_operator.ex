@@ -26,6 +26,7 @@ defmodule ElevatorOperator do
   Signals the push of an order button.
   ## Parameters
     - order: Order corresponding to pressed order button :: %Order{}
+
   ## Return
     - no_return
   """
@@ -37,6 +38,7 @@ defmodule ElevatorOperator do
   Signals that the elevator has arrived at a floor.
   ## Parameters
     - floor: The floor the elevator has arrived at :: integer()
+  
   ## Return
     - no_return
   """

@@ -15,6 +15,7 @@ defmodule Network.Listen do
   `init/1` opens a socket and starts listening by calling `listen/1`.
   ## Parameters
     - recv_port: Port number :: integer()
+    
   ## Return
     - no_return
   """
@@ -77,6 +78,7 @@ defmodule Network.Broadcast do
   `Network.Listen` is listening on.
   ## Parameters
     - recv_port: Port number `Network.Listen` is listening on :: integer()
+
   ## Return
     - no_return
   """
@@ -117,6 +119,7 @@ defmodule Network.ConnectionCheck do
   ´OrderDistributor.request_backup/0´.
   ## Parameters
     - prev_connected_nodes: list of the previously connected nodes :: list()
+
   ## Return
     - no_return
   """

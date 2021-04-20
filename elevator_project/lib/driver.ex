@@ -1,5 +1,8 @@
 defmodule Driver do
-  @moduledoc false
+  @moduledoc """
+  Communicates with the elevator hardware. Delivered as a part of the course
+  TTK4145: Real-time programming.
+  """
 
   use GenServer
 

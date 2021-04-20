@@ -24,23 +24,13 @@ The system is divided into the following modules:
 - `Watchdog` for reinjecting orders if they are not handled within a set amount of time.
 - `Driver` for communicating with the elevator hardware.
 - `InputPoller` for polling the various hardware sensors.
+    - `ObstructionPoller` for polling the obstruction switch sensor.
+    - `FloorPoller` for polling the floor sensor.
+    - `OrderButtonPoller` for polling an order button.
 
 Additionally, different modules are supervised by different Supervisors. These Supervisors are responsible for restarting modules if the terminate due to some error.
 
 ## Documentation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `elevator_project` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:elevator_project, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/elevator_project](https://hexdocs.pm/elevator_project).
+The modules are documented at https://hexdocs.pm/elevator_project.
 

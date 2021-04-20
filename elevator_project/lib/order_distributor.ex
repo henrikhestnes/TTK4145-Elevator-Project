@@ -32,6 +32,7 @@ defmodule OrderDistributor do
   ## Parameters
     - order: Order to be distributed as new :: %Order{}
     - best_elevator: Elevator to serve the order :: atom()
+
   ## Return
     - :ok :: atom()
   """
@@ -52,6 +53,7 @@ defmodule OrderDistributor do
   Spawning a multi_call effectively becomes a multi_cast with acknowledge and a given timeout.
   ## Parameters
     - order: Order to be distributed as completed :: %Order{}
+    
   ## Return
     - :ok :: atom()
   """
