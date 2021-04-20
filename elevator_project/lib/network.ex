@@ -25,15 +25,7 @@ defmodule Network.Listen do
     listen(socket)
   end
 
-  @doc """
-  `listen/1` listens for new nodes and tries to connect the new node to
-  the current cluster.
-  ## Parameters
-    - socket: Socket number :: integer()
-  ## Return
-    - no_return
-  """
-  def listen(socket) do
+  defp listen(socket) do
     {:ok, {_ip, _port, node_name}} = :gen_udp.recv(socket, 0)
 
     if node_name not in all_nodes() and node_name != "nonode@nohost" do
@@ -44,15 +36,9 @@ defmodule Network.Listen do
     listen(socket)
   end
 
-  @doc """
-  `connect_to/2` connects a node to the cluster.
-  ## Parameters
-    - node_name: Node name :: String
-    - attempt: Number of connection attemts :: Integer
-  """
-  def connect_to(node_name, attempt \\ 0)
+  defp connect_to(node_name, attempt \\ 0)
 
-  def connect_to(node_name, attempt) when attempt < @max_connect_attempts do
+  defp connect_to(node_name, attempt) when attempt < @max_connect_attempts do
     case Node.ping(String.to_atom(node_name)) do
       :pang ->
         connect_to(node_name, attempt + 1)
@@ -62,16 +48,11 @@ defmodule Network.Listen do
     end
   end
 
-  def connect_to(node_name, attempt) when attempt >= @max_connect_attempts do
+  defp connect_to(node_name, attempt) when attempt >= @max_connect_attempts do
     IO.puts("Gave up connecting to #{node_name}")
   end
 
-  @doc """
-  `all_nodes/0` transforms the node names to a list of strings
-  ## Return
-    - List of node names as strings :: list()
-  """
-  def all_nodes() do
+  defp all_nodes() do
     Enum.map([Node.self() | Node.list()], fn node_name -> to_string(node_name) end)
   end
 end
@@ -106,15 +87,7 @@ defmodule Network.Broadcast do
     broadcast(socket, recv_port)
   end
 
-  @doc """
-  `broadcast/2` broadcasts the node name.
-  ## Parameters
-    - socket: Socket number :: integer()
-    - recv_port: Port number :: integer()
-  ## Return
-    - no_return
-  """
-  def broadcast(socket, recv_port) do
+  defp broadcast(socket, recv_port) do
     :gen_udp.send(socket, {255, 255, 255, 255}, recv_port, to_string(Node.self()))
     Process.sleep(@broadcast_sleep_duration)
     broadcast(socket, recv_port)
