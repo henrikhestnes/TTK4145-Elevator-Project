@@ -12,7 +12,8 @@ defmodule OrderDistributor do
   """
   use GenServer
 
-  @call_timeout 5_000
+  @distribution_call_timeout 10_000
+  @backup_call_timeout 5_000
 
   def start_link(_init_arg) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -21,7 +22,8 @@ defmodule OrderDistributor do
   # API ------------------------------------------------
   @doc """
   Distributes given order to best suited elevator, and tells the other elevators
-  that a order is distributed to a given elevator.
+  that a order is distributed to a given elevator. Spawning a multi_call for each new
+  distribution effectively becomes a multi_cast with acknowledge and a given timeout.
   ## Parameters
     - order: Order struct on the form defined in module `Order` :: %Order{}
     - best_elevator: Elevator selected to serve the order :: atom()
@@ -34,14 +36,15 @@ defmodule OrderDistributor do
         [Node.self() | Node.list()],
         __MODULE__,
         {:new_order, order},
-        @call_timeout
+        @distribution_call_timeout
       )
       end
     )
   end
 
   @doc """
-  Tells all elevator that given order(s) is completed
+  Tells all elevator that given order(s) is completed. Spawning a multi_call for each completed
+  distribution effectively becomes a multi_cast with acknowledge and a given timeout.
   ## Parameters
     - order: Order struct on the form defined in module `Order` :: %Order{}
   ## Return
@@ -53,7 +56,7 @@ defmodule OrderDistributor do
         [Node.self() | Node.list()],
         __MODULE__,
         {:delete_order, order},
-        @call_timeout
+        @distribution_call_timeout
       )
       end
     )
@@ -138,7 +141,7 @@ defmodule OrderDistributor do
         [Node.self() | Node.list()],
         __MODULE__,
         :get_orders,
-        @call_timeout
+        @backup_call_timeout
       )
 
     Enum.map(all_orders, fn {_node, orders} -> orders end)
